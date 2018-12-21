@@ -1,0 +1,13 @@
+
+id_char = lower | upper | number | "_" ;
+
+id = lower, { id_char };
+upper_id = upper, { id_char };
+
+function_definition = id, ":", parameter_def_list, "->", type;
+
+parameter_def_list = type, { ",", type };
+
+type = upper_id
+     | "[", type, "]";
+

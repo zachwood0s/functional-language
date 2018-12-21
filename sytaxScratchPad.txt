@@ -1,0 +1,9 @@
+
+sum : [Int] -> Int
+sum(list) = 
+  match list:
+    [] -> 0,
+    [x] -> x,
+    [x:xs] -> x+sum(xs)
+
+sum(list, sum(list))
