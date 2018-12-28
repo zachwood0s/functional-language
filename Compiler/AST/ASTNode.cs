@@ -10,4 +10,8 @@ namespace Compiler.AST
     {
         public abstract void Accept(IASTVisitor visitor);
     }
+
+    public abstract class ExprAST: ASTNode
+    {
+    }
 }

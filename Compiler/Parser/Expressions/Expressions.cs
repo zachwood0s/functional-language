@@ -12,20 +12,32 @@ namespace Compiler.Parser.Expressions
 {
     public static class ExpressionParser
     {
-        public static readonly Parser<ASTNode> Factor =
+        public static readonly Parser<ExprAST> IfExpression =
+            from _if in Parse.String("if").Token()
+            from ifcond in Expression
+            from _then in Parse.String("then").Token()
+            from then in Expression
+            from elseExpression in Parse.String("else").Token().Then(_ => Expression).Optional()
+            select new IfExpressionNode(ifcond, then, elseExpression);
+
+
+        public static readonly Parser<ExprAST> Factor =
             (from lparen in Parse.Char('(')
              from expr in Parse.Ref(() => Expression)
              from rparen in Parse.Char(')')
              select expr).Named("expression")
-            .XOr(ConstantParser.Constant);
+            .XOr(ConstantParser.Constant)
+            .XOr(IfExpression)
+            .XOr(IdentifierParser.LowerIdentifier
+                .Select(x => new IdentifierNode(x)).Named("identifier"));
 
-        public static readonly Parser<ASTNode> Operand =
+        public static readonly Parser<ExprAST> Operand =
             ((from sign in Parse.Char('-')
               from factor in Factor
-              select new UnaryOperator(factor, UnaryOperatorType.Negate)
+              select new UnaryOperatorNode(factor, UnaryOperatorType.Negate)
               ).XOr(Factor)).Token();
 
-        public static readonly Parser<ASTNode> Term = 
+        public static readonly Parser<ExprAST> Term = 
             Parse.ChainOperator(
                 OperatorParser.Multiplication
                     .Or(OperatorParser.Division)
@@ -33,13 +45,13 @@ namespace Compiler.Parser.Expressions
                 Operand,
                 MakeBinary);
 
-        public static readonly Parser<ASTNode> Expression =
+        public static readonly Parser<ExprAST> Expression =
             Parse.ChainOperator(
                 OperatorParser.Addition.Or(OperatorParser.Subtraction), 
                 Term, 
-                MakeBinary);
+                MakeBinary).Named("expression");
 
-        public static ASTNode MakeBinary(BinaryOperatorType op, ASTNode left, ASTNode right) =>
-            new BinaryOperator(left, right, op);
+        public static ExprAST MakeBinary(BinaryOperatorType op, ExprAST left, ExprAST right) =>
+            new BinaryOperatorNode(left, right, op);
     }
 }

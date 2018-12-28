@@ -12,7 +12,8 @@ namespace Compiler.Parser
         Subtraction,
         Multiplication,
         Division,
-        Modulo
+        Modulo,
+        Assign
     }
 
     public enum UnaryOperatorType

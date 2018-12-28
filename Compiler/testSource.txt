@@ -1,0 +1,4 @@
+﻿
+
+testFunction : Int -> Int
+testFunction( a ) = a + a * ( a - 5)

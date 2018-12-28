@@ -1,40 +1,38 @@
-﻿using Compiler.Parser.Basics;
+﻿using Compiler.AST.Nodes;
+using Compiler.Parser.Basics;
+using Compiler.Parser.Expressions;
 using Sprache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Compiler.Parser.Functions
 {
     public static class FunctionDefinitionParser
     {
-
-        public static readonly Parser<string> FunctionDefinition =
+        public static readonly Parser<string> Parameter =
             from ident in IdentifierParser.LowerIdentifier
-            from colon in FunctionIdentifierSeparator
-            from parameters in ParameterList
-            from returnSeparator in FunctionReturnSeparator 
-            from returnType in ReturnType
-            select $"Function: {ident} with params {parameters} and return {returnType}";
+            from comma in Parse.Char(',').Token().Optional()
+            select ident;
 
-        public static readonly Parser<string> ParameterList =
-            from typeName in TypeParser.TypeUsage
-            from restTypes in Parse.Ref(() => ParameterListDelimeter).Then(_ => TypeParser.TypeUsage).Many()
-            select typeName +","+ string.Join(", ", restTypes);
+        public static Parser<IEnumerable<string>> ParameterList(int count) =>
+            from lparen in Parse.Char('(').Token()
+            from identifier in Parameter.Named("parameter").Repeat(count)
+            from rparen in Parse.Char(')').Token()
+            select identifier;
 
-        public static readonly Parser<string> ReturnType =
-            from typeName in TypeParser.TypeUsage
-            select typeName;
+        public static readonly Parser<FunctionNode> FunctionDefinition =
+            from wspace in Parse.WhiteSpace.Many()
+            from proto in FunctionDeclarationParser.FunctionDeclaration
+            from newline in WhiteSpace.NewLine
+            from identifier in Parse.String(proto.Name)
+                                    .Named($"function identifier (e.g. {proto.Name})")
+            from args in ParameterList(proto.ArgTypes.Count)
+            from equal in OperatorParser.Assign
+            from body in ExpressionParser.Expression
+            select new FunctionNode(proto, args.ToList(), body);
 
-        public static readonly Parser<char> ParameterListDelimeter =
-            Parse.Char(',').Token();
-
-        public static readonly Parser<char> FunctionIdentifierSeparator =
-            Parse.Char(':').Token();
-
-        public static readonly Parser<string> FunctionReturnSeparator =
-            from op in Parse.String("->").Token()
-            select new string(op.ToArray());
     }
 }

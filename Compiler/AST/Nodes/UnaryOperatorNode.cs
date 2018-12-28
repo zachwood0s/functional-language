@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace Compiler.AST.Nodes
 {
-    public class UnaryOperator: ASTNode
+    public class UnaryOperatorNode: ExprAST
     {
         private ASTNode _node;
         private UnaryOperatorType _operator;
 
-        public ASTNode Node;
+        public ASTNode Node => _node;
         public UnaryOperatorType Operator;
 
-        public UnaryOperator(ASTNode node, UnaryOperatorType op)
+        public UnaryOperatorNode(ASTNode node, UnaryOperatorType op)
         {
             _node = node;
             _operator = op;

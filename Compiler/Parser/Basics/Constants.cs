@@ -11,9 +11,11 @@ namespace Compiler.Parser.Basics
 {
     public static class ConstantParser
     {
-        public static readonly Parser<ASTNode> Constant =
+        public static readonly Parser<ConstantDoubleNode> Constant =
             Parse.Decimal
-            .Select(x => new ConstantDouble(double.Parse(x)))
+            .Select(x => new ConstantDoubleNode(double.Parse(x)))
             .Named("number");
+
+
     }
 }

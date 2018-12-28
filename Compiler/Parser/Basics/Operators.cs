@@ -26,5 +26,8 @@ namespace Compiler.Parser.Basics
 
         public static readonly Parser<BinaryOperatorType> Modulo =
             Operator("%", BinaryOperatorType.Modulo);
+
+        public static readonly Parser<BinaryOperatorType> Assign =
+            Operator("=", BinaryOperatorType.Assign);
     }
 }

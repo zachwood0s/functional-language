@@ -6,16 +6,15 @@ using System.Threading.Tasks;
 
 namespace Compiler.AST.Nodes
 {
-    public class ConstantDoubleNode : ExprAST
+    public class IdentifierNode : ExprAST
     {
-        private double _value;
-        public double Value => _value;
+        private string _name;
+        public string Name => _name;
 
-        public ConstantDoubleNode(double value)
+        public IdentifierNode(string name)
         {
-            _value = value;
+            _name = name;
         }
-
         public override void Accept(IASTVisitor visitor)
         {
             visitor.Visit(this);
