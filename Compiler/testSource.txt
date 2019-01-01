@@ -1,4 +1,8 @@
 ﻿
+double : Int -> Int
+double(a) = (1+2+a)*(a+(1+2))
 
-testFunction : Int -> Int
-testFunction( a ) = a + a * ( a - 5)
+testFunction : Int, Int -> Int
+testFunction( a, b ) = 
+	if b then 1 
+	else 2

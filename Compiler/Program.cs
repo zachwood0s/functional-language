@@ -25,15 +25,27 @@ namespace Compiler
             string text = File.ReadAllText(file);
             try
             {
-                var node = FunctionDefinitionParser.FunctionDefinition.Parse(text);
-                node.Accept(new ASTPrintVisitor());
+                var nodes = FunctionDefinitionParser.FunctionDefinition.Many().Parse(text);
+                foreach(var node in nodes)
+                {
+                    node.Accept(new ASTPrintVisitor());
+                }
+                //node(new ASTPrintVisitor());
 
                 var codegen = new ASTCodeGenVisitor("my cool jit");
-                node.Accept(codegen);
+                foreach(var node in nodes)
+                {
+                    node.Accept(codegen);
+                }
                 codegen.PrintIR();
 
             }
             catch(ParseException e)
+            {
+                Console.WriteLine(text);
+                Console.WriteLine(e.Message);
+            }
+            catch(CodeGenException<string> e)
             {
                 Console.WriteLine(text);
                 Console.WriteLine(e.Message);

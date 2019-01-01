@@ -28,8 +28,8 @@ namespace Compiler.Parser.Expressions
              select expr).Named("expression")
             .XOr(ConstantParser.Constant)
             .XOr(IfExpression)
-            .XOr(IdentifierParser.LowerIdentifier
-                .Select(x => new IdentifierNode(x)).Named("identifier"));
+            .XOr(IdentifierParser.LowerIdentifier.Span()
+                .Select(x => new IdentifierNode(x.Value, x)).Named("identifier"));
 
         public static readonly Parser<ExprAST> Operand =
             ((from sign in Parse.Char('-')

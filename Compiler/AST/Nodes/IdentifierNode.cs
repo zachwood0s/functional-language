@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sprache;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,11 +10,15 @@ namespace Compiler.AST.Nodes
     public class IdentifierNode : ExprAST
     {
         private string _name;
-        public string Name => _name;
+        private ITextSpan<string> _span;
 
-        public IdentifierNode(string name)
+        public string Name => _name;
+        public ITextSpan<string> Span => _span;
+
+        public IdentifierNode(string name, ITextSpan<string> span)
         {
             _name = name;
+            _span = span;
         }
         public override void Accept(IASTVisitor visitor)
         {

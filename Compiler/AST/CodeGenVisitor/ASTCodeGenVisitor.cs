@@ -13,6 +13,7 @@ namespace Compiler.AST.CodeGenVisitor
     {
         private readonly LLVMModuleRef _module;
         private readonly LLVMBuilderRef _builder;
+        private readonly LLVMPassManagerRef _passManager;
         private readonly Dictionary<string, LLVMValueRef> _namedValues;
         private readonly Stack<LLVMValueRef> _valueStack;
 
@@ -22,6 +23,13 @@ namespace Compiler.AST.CodeGenVisitor
             _valueStack = new Stack<LLVMValueRef>();
             _module = LLVM.ModuleCreateWithName(moduleName);
             _builder = LLVM.CreateBuilder();
+
+            _passManager = LLVM.CreateFunctionPassManagerForModule(_module);
+            LLVM.AddInstructionCombiningPass(_passManager);
+            LLVM.AddReassociatePass(_passManager);
+            LLVM.AddGVNPass(_passManager);
+            LLVM.AddCFGSimplificationPass(_passManager);
+            LLVM.InitializeFunctionPassManager(_passManager);
         }
 
         public void PrintIR()
@@ -124,6 +132,7 @@ namespace Compiler.AST.CodeGenVisitor
             LLVM.BuildRet(_builder, _valueStack.Pop());
 
             LLVM.VerifyFunction(function, LLVMVerifierFailureAction.LLVMPrintMessageAction);
+            LLVM.RunFunctionPassManager(_passManager, function);
             _valueStack.Push(function);
         }
 
@@ -171,13 +180,47 @@ namespace Compiler.AST.CodeGenVisitor
             }
             else
             {
-                throw new Exception("Unknown variable name");
+                throw new CodeGenException<string>($"Unknown variable name '{node.Name}'", node.Span);
             }
         }
 
         public void Visit(IfExpressionNode node)
         {
-            throw new NotImplementedException();
+            node.IfCondition.Accept(this);
+            var condV = _valueStack.Pop();
+
+            condV = LLVM.BuildFCmp(
+                _builder,
+                LLVMRealPredicate.LLVMRealONE,
+                condV,
+                LLVM.ConstReal(LLVM.DoubleType(), 0.0),
+                "ifcond");
+
+            var function = LLVM.GetInsertBlock(_builder).GetBasicBlockParent();
+
+            var thenBB = function.AppendBasicBlock("then");
+            var elseBB = function.AppendBasicBlock("else");
+            var mergeBB = function.AppendBasicBlock("ifcont");
+
+            LLVM.BuildCondBr(_builder, condV, thenBB, elseBB);
+
+            LLVM.PositionBuilderAtEnd(_builder, thenBB);
+            node.Then.Accept(this);
+            var thenV = _valueStack.Pop();
+            LLVM.BuildBr(_builder, mergeBB);
+            thenBB = LLVM.GetInsertBlock(_builder);
+
+            LLVM.PositionBuilderAtEnd(_builder, elseBB);
+            node.ElseExpression.Get().Accept(this);
+            var elseV = _valueStack.Pop();
+            LLVM.BuildBr(_builder, mergeBB);
+            elseBB = LLVM.GetInsertBlock(_builder);
+
+            LLVM.PositionBuilderAtEnd(_builder, mergeBB);
+            var phiNode = LLVM.BuildPhi(_builder, LLVM.DoubleType(), "iftmp");
+
+            phiNode.AddIncoming(new[] {thenV, elseV}, new[] { thenBB, elseBB }, 2);
+            _valueStack.Push(phiNode);
         }
     }
 }
