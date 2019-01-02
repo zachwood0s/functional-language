@@ -107,6 +107,22 @@ namespace Compiler.AST.ConsolePrintVisitor
             });
         }
 
+        public void Visit(LetExpressionNode node)
+        {
+            _DoPrint(() =>
+            {
+                Console.WriteLine("Let");
+                _WriteIndent("+Assignments:");
+                foreach(var assignment in node.Assignments)
+                {
+                    _WriteIndent($"++ {assignment.Identifier}:");
+                    assignment.Expression.Accept(this);
+                }
+                _WriteIndent("+In:");
+                node.InExpression.Accept(this);
+            });
+        }
+
         #region Helper Methods
         private void _DoPrint(Action action)
         {

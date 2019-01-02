@@ -25,7 +25,7 @@ namespace Compiler
             string text = File.ReadAllText(file);
             try
             {
-                var nodes = FunctionDefinitionParser.FunctionDefinition.Many().Parse(text);
+                var nodes = FunctionDefinitionParser.FunctionDefinition.XMany().End().Parse(text);
                 foreach(var node in nodes)
                 {
                     node.Accept(new ASTPrintVisitor());

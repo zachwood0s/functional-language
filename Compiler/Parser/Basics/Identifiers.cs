@@ -9,19 +9,19 @@ namespace Compiler.Parser.Basics
     public static class IdentifierParser
     {
 
-        public static readonly Parser<string> IdentifierCharacter =
-            from letters in Parse.LetterOrDigit.XOr(Parse.Char('_')).Many()
-            select new string(letters.ToArray());
+        public static readonly Parser<char> IdentifierCharacter =
+            from _char in Parse.LetterOrDigit.XOr(Parse.Char('_'))
+            select _char;
 
         public static readonly Parser<string> UpperIdentifier =
-            from first in Parse.Upper.Once()
-            from rest in IdentifierCharacter
-            select new string(first.Concat(rest).ToArray());
+            from ident in Parse.Identifier(Parse.Upper, IdentifierCharacter)
+            select ident;
 
         public static readonly Parser<string> LowerIdentifier =
-            from first in Parse.Lower.Once()
-            from rest in IdentifierCharacter
-            select new string(first.Concat(rest).ToArray());
+            from ident in Parse.Identifier(Parse.Lower, IdentifierCharacter)
+                .Where(x => !Reserved.Keywords.Contains(x))
+            select ident;
+            
 
 
     }

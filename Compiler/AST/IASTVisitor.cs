@@ -18,5 +18,6 @@ namespace Compiler.AST
         void Visit(PrototypeNode node);
         void Visit(IdentifierNode node);
         void Visit(IfExpressionNode node);
+        void Visit(LetExpressionNode node);
     }
 }

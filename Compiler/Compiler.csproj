@@ -193,17 +193,21 @@
     <Compile Include="AST\Nodes\FunctionCallNode.cs" />
     <Compile Include="AST\Nodes\IdentifierNode.cs" />
     <Compile Include="AST\Nodes\IfExpressionNode.cs" />
+    <Compile Include="AST\Nodes\LetExpressionNode.cs" />
     <Compile Include="AST\Nodes\PrototypeNode.cs" />
     <Compile Include="AST\Nodes\UnaryOperatorNode.cs" />
     <Compile Include="Parser\Basics\Constants.cs" />
     <Compile Include="Parser\Basics\Identifiers.cs" />
     <Compile Include="Parser\Basics\Operators.cs" />
+    <Compile Include="Parser\Basics\Reserved.cs" />
     <Compile Include="Parser\Basics\Types.cs" />
     <Compile Include="Parser\Basics\WhiteSpace.cs" />
     <Compile Include="Parser\Expressions\Expressions.cs" />
+    <Compile Include="Parser\Functions\FunctionCall.cs" />
     <Compile Include="Parser\Functions\FunctionDeclaration.cs" />
     <Compile Include="Parser\Functions\FunctionDefinition.cs" />
     <Compile Include="Parser\OperatorTypes.cs" />
+    <Compile Include="Parser\ParseExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

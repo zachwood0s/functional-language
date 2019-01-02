@@ -7,10 +7,13 @@ using Compiler.AST.Nodes;
 using Compiler.Parser;
 using LLVMSharp;
 
+
 namespace Compiler.AST.CodeGenVisitor
 {
     public partial class ASTCodeGenVisitor : IASTVisitor
     {
+        public static readonly bool OPTIMIZE = true;
+
         private readonly LLVMModuleRef _module;
         private readonly LLVMBuilderRef _builder;
         private readonly LLVMPassManagerRef _passManager;
@@ -25,6 +28,7 @@ namespace Compiler.AST.CodeGenVisitor
             _builder = LLVM.CreateBuilder();
 
             _passManager = LLVM.CreateFunctionPassManagerForModule(_module);
+            LLVM.AddPromoteMemoryToRegisterPass(_passManager);
             LLVM.AddInstructionCombiningPass(_passManager);
             LLVM.AddReassociatePass(_passManager);
             LLVM.AddGVNPass(_passManager);
@@ -108,6 +112,9 @@ namespace Compiler.AST.CodeGenVisitor
             node.Prototype.Accept(this);
             var function = _valueStack.Pop();
 
+            var entry = LLVM.AppendBasicBlock(function, "entry");
+            LLVM.PositionBuilderAtEnd(_builder, entry);
+
             for(int i = 0; i<node.Args.Count; i++)
             {
                 var argName = node.Args[i];
@@ -115,10 +122,12 @@ namespace Compiler.AST.CodeGenVisitor
                 var param = LLVM.GetParam(function, (uint)i);
                 LLVM.SetValueName(param, argName);
 
-                _namedValues[argName] = param;
+                var alloca = _CreateEntryBlockAlloca(function, argName);
+                LLVM.BuildStore(_builder, param, alloca); 
+
+                _namedValues[argName] = alloca;
             }
 
-            LLVM.PositionBuilderAtEnd(_builder, LLVM.AppendBasicBlock(function, "entry"));
 
             try
             {
@@ -132,7 +141,7 @@ namespace Compiler.AST.CodeGenVisitor
             LLVM.BuildRet(_builder, _valueStack.Pop());
 
             LLVM.VerifyFunction(function, LLVMVerifierFailureAction.LLVMPrintMessageAction);
-            LLVM.RunFunctionPassManager(_passManager, function);
+            if(OPTIMIZE) LLVM.RunFunctionPassManager(_passManager, function);
             _valueStack.Push(function);
         }
 
@@ -176,7 +185,8 @@ namespace Compiler.AST.CodeGenVisitor
         {
             if(_namedValues.TryGetValue(node.Name, out var value))
             {
-                _valueStack.Push(value);
+                var loaded = LLVM.BuildLoad(_builder, value, node.Name);
+                _valueStack.Push(loaded);
             }
             else
             {
@@ -221,6 +231,38 @@ namespace Compiler.AST.CodeGenVisitor
 
             phiNode.AddIncoming(new[] {thenV, elseV}, new[] { thenBB, elseBB }, 2);
             _valueStack.Push(phiNode);
+        }
+
+        public void Visit(LetExpressionNode node)
+        {
+            var oldBindings = new List<LLVMValueRef>();
+
+            foreach(var assignment in node.Assignments)
+            {
+                assignment.Expression.Accept(this);
+                var calculated = _valueStack.Pop();
+                var value = LLVM.BuildAlloca(_builder, LLVM.DoubleType(), assignment.Identifier);
+                LLVM.BuildStore(_builder, calculated, value);
+                _namedValues.TryGetValue(assignment.Identifier, out var oldValue);
+                oldBindings.Add(oldValue);
+                _namedValues.Add(assignment.Identifier, value);
+            }
+
+            node.InExpression.Accept(this);
+
+            for(int i = 0; i<node.Assignments.Count; i++)
+            {
+                _namedValues[node.Assignments[i].Identifier] = oldBindings[i];
+            }
+        }
+
+        private LLVMValueRef _CreateEntryBlockAlloca(LLVMValueRef function, string varName)
+        {
+            var tempB = LLVM.CreateBuilder();
+            var entry = function.GetEntryBasicBlock();
+            LLVM.PositionBuilder(tempB, entry, entry.GetFirstInstruction());
+
+            return LLVM.BuildAlloca(tempB, LLVM.DoubleType(), varName);
         }
     }
 }
