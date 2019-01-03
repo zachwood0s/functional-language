@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 
 namespace Compiler.Parser
 {
-    public enum BinaryOperatorType
+    public static class BinaryOperator
     {
-        Addition,
-        Subtraction,
-        Multiplication,
-        Division,
-        Modulo,
-        Assign
+        public const string Addition = "+";
+        public const string Subtraction = "-";
+        public const string Multiplication = "*";
+        public const string Division = "/";
+        public const string Modulo = "%";
+        public const string Assign = "=";
+        public const string LessThan = "<";
     }
 
     public enum UnaryOperatorType

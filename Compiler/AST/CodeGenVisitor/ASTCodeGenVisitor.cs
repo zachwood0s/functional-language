@@ -16,7 +16,8 @@ namespace Compiler.AST.CodeGenVisitor
 
         private readonly LLVMModuleRef _module;
         private readonly LLVMBuilderRef _builder;
-        private readonly LLVMPassManagerRef _passManager;
+        private readonly LLVMPassManagerRef _functionPassManager;
+        private readonly LLVMPassManagerRef _modulePassManager;
         private readonly Dictionary<string, LLVMValueRef> _namedValues;
         private readonly Stack<LLVMValueRef> _valueStack;
 
@@ -27,18 +28,31 @@ namespace Compiler.AST.CodeGenVisitor
             _module = LLVM.ModuleCreateWithName(moduleName);
             _builder = LLVM.CreateBuilder();
 
-            _passManager = LLVM.CreateFunctionPassManagerForModule(_module);
-            LLVM.AddPromoteMemoryToRegisterPass(_passManager);
-            LLVM.AddInstructionCombiningPass(_passManager);
-            LLVM.AddReassociatePass(_passManager);
-            LLVM.AddGVNPass(_passManager);
-            LLVM.AddCFGSimplificationPass(_passManager);
-            LLVM.InitializeFunctionPassManager(_passManager);
+            _functionPassManager = LLVM.CreateFunctionPassManagerForModule(_module);
+            _modulePassManager = LLVM.CreatePassManager();
+
+            _SetupPasses();
+        }
+
+        private void _SetupPasses()
+        {
+            LLVM.AddPromoteMemoryToRegisterPass(_functionPassManager);
+            LLVM.AddInstructionCombiningPass(_functionPassManager);
+            LLVM.AddReassociatePass(_functionPassManager);
+            LLVM.AddGVNPass(_functionPassManager);
+            LLVM.AddCFGSimplificationPass(_functionPassManager);
+            LLVM.AddTailCallEliminationPass(_functionPassManager);
+            LLVM.InitializeFunctionPassManager(_functionPassManager);
+
+            LLVM.AddFunctionInliningPass(_modulePassManager);
+            LLVM.AddGlobalDCEPass(_modulePassManager);
         }
 
         public void PrintIR()
         {
+            if(OPTIMIZE) LLVM.RunPassManager(_modulePassManager, _module);
             LLVM.DumpModule(_module);
+            
         }
 
         public void Visit(ASTNode node)
@@ -56,17 +70,25 @@ namespace Compiler.AST.CodeGenVisitor
             LLVMValueRef res;
             switch (node.Operator)
             {
-                case BinaryOperatorType.Addition:
+                case BinaryOperator.Addition: 
                     res = LLVM.BuildFAdd(_builder, left, right, "addtmp");
                     break;
-                case BinaryOperatorType.Subtraction:
+                case BinaryOperator.Subtraction:
                     res = LLVM.BuildFSub(_builder, left, right, "subtmp");
                     break;
-                case BinaryOperatorType.Multiplication:
+                case BinaryOperator.Multiplication:
                     res = LLVM.BuildFMul(_builder, left, right, "multmp");
                     break;
+                case BinaryOperator.LessThan:
+                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealULT, left, right, "cmptmp");
+                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
+                    break;
                 default:
-                    throw new Exception("invalid binary operator");
+                    //Handle predefined operator
+                    var function = LLVM.GetNamedFunction(_module, $"binary{node.Operator}");
+                    var ops = new[] { left, right };
+                    res = LLVM.BuildCall(_builder, function, ops, "binop");
+                    break;
             }
             _valueStack.Push(res);
         }
@@ -141,7 +163,7 @@ namespace Compiler.AST.CodeGenVisitor
             LLVM.BuildRet(_builder, _valueStack.Pop());
 
             LLVM.VerifyFunction(function, LLVMVerifierFailureAction.LLVMPrintMessageAction);
-            if(OPTIMIZE) LLVM.RunFunctionPassManager(_passManager, function);
+            if(OPTIMIZE) LLVM.RunFunctionPassManager(_functionPassManager, function);
             _valueStack.Push(function);
         }
 
@@ -264,5 +286,6 @@ namespace Compiler.AST.CodeGenVisitor
 
             return LLVM.BuildAlloca(tempB, LLVM.DoubleType(), varName);
         }
+
     }
 }

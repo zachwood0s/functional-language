@@ -1,8 +1,8 @@
-﻿using Compiler.AST.CodeGenVisitor;
+﻿using Compiler.AST;
+using Compiler.AST.CodeGenVisitor;
 using Compiler.AST.ConsolePrintVisitor;
-using Compiler.Parser.Expressions;
-using Compiler.Parser.Functions;
-using Sprache;
+using Compiler.PidginParser;
+using Pidgin;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +17,10 @@ namespace Compiler
         public static void Main(string[] args)
         {
             LoadFile("testSource.txt");
+
+            //var node = PidginParser.Expressions.ExpressionParser.Expression
+             //   .ParseOrThrow("4 + 5 * alpha == (2 + 2) * 4 + 4 || b < a && a");
+            //node.Accept(new ASTPrintVisitor());
             Console.ReadKey();
         }
 
@@ -25,7 +29,8 @@ namespace Compiler
             string text = File.ReadAllText(file);
             try
             {
-                var nodes = FunctionDefinitionParser.FunctionDefinition.XMany().End().Parse(text);
+                var nodes = ProgramParser.Program.ParseOrThrow(text);
+                //var nodes = FunctionDefinitionParser.FunctionDefinition.XMany().End().Parse(text);
                 foreach(var node in nodes)
                 {
                     node.Accept(new ASTPrintVisitor());
@@ -53,6 +58,7 @@ namespace Compiler
             Console.WriteLine("\n");
         }
 
+        /*
         public static void DoExpression(string test)
         {
             try
@@ -75,13 +81,14 @@ namespace Compiler
                     (test);
                 node.Accept(new ASTPrintVisitor());
             }
-            catch (ParseException e)
+            catch (Sprache.ParseException e)
             {
                 Console.WriteLine(test);
                 Console.WriteLine(e.Message);
             }
             Console.WriteLine("\n\n\n");
         }
+        */
 
     }
 }

@@ -11,13 +11,13 @@ namespace Compiler.AST.Nodes
     {
         private ASTNode _left;
         private ASTNode _right;
-        private BinaryOperatorType _operator;
+        private string _operator;
 
         public ASTNode Left => _left;
         public ASTNode Right => _right;
-        public BinaryOperatorType Operator => _operator;
+        public string Operator => _operator;
 
-        public BinaryOperatorNode(ASTNode left, ASTNode right, BinaryOperatorType op)
+        public BinaryOperatorNode(ASTNode left, ASTNode right, string op)
         {
             _left = left;
             _right = right;

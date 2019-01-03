@@ -1,4 +1,13 @@
-﻿
+﻿sum: Int, Int -> Int
+sum(a,b) = 
+	if a < b then a
+	else b
+
+factorial: Int -> Int
+factorial(n) = 
+	if n then 1
+	else n * factorial(n-1)
+
 sum: Int, Int -> Int
 sum(a,b) = a + b
 
@@ -11,10 +20,16 @@ testFunction(a) =
 		in z
 
 fib : Int -> Int
-fib(x) =
+fib(a) = 
+	if a then 1
+	else fib(a-1) + fib(a-2)
+
+
+fib2 : Int -> Int
+fib2(x) =
 	if x then 1
 	else let
-		fib1 = fib(x-1);
-		fib2 = fib(x-2)
+		fib1 = fib2(x-1);
+		fib2 = fib2(x-2)
 	in
 		fib1 + fib2

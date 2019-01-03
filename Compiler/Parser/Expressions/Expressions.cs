@@ -69,7 +69,8 @@ namespace Compiler.Parser.Expressions
                 Term, 
                 MakeBinary).Named("expression");
 
-        public static ExprAST MakeBinary(BinaryOperatorType op, ExprAST left, ExprAST right) =>
+        public static ExprAST MakeBinary(string op, ExprAST left, ExprAST right) =>
             new BinaryOperatorNode(left, right, op);
+
     }
 }
