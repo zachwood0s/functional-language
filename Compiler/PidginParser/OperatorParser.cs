@@ -17,7 +17,7 @@ namespace Compiler.PidginParser
             => op.Select<Func<ExprAST, ExprAST, ExprAST>>(type => (l, r) => new BinaryOperatorNode(l, r, type));
 
         public static Parser<char, Func<ExprAST, ExprAST, ExprAST>> BinaryOp(string op)
-            => MakeBinary(Utils.Token(op));
+            => MakeBinary(Utils.Token(op)).Labelled("operator");
 
 
         public static readonly List<BinaryOperator> Operators = new List<BinaryOperator>()

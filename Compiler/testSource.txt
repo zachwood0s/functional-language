@@ -1,7 +1,7 @@
-﻿sum: Int, Int -> Int
-sum(a,b) = 
-	if a < b then a
-	else b
+﻿test: Int -> Int
+test(n) =
+	let x = n * n + 5 - 3
+	in x * x + 5
 
 factorial: Int -> Int
 factorial(n) = 

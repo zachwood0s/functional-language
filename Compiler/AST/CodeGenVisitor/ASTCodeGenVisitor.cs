@@ -105,7 +105,7 @@ namespace Compiler.AST.CodeGenVisitor
 
         public void Visit(FunctionCallNode node)
         {
-            var callee = LLVM.GetNamedFunction(_module, node.Callee);
+            var callee = LLVM.GetNamedFunction(_module, (node.Callee as IdentifierNode).Name);
             if(callee.Pointer == IntPtr.Zero)
             {
                 throw new Exception("Unknown function referenced");
@@ -243,7 +243,7 @@ namespace Compiler.AST.CodeGenVisitor
             thenBB = LLVM.GetInsertBlock(_builder);
 
             LLVM.PositionBuilderAtEnd(_builder, elseBB);
-            node.ElseExpression.Get().Accept(this);
+            node.ElseExpression.Value.Accept(this);
             var elseV = _valueStack.Pop();
             LLVM.BuildBr(_builder, mergeBB);
             elseBB = LLVM.GetInsertBlock(_builder);

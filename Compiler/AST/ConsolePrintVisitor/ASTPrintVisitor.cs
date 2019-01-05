@@ -50,7 +50,7 @@ namespace Compiler.AST.ConsolePrintVisitor
         {
             _DoPrint(() =>
             {
-                Console.WriteLine($"{node.Callee}:");
+                if(node.Callee is IdentifierNode ident) Console.WriteLine($"{ident.Name}:");
                 for(int i = 0; i<node.Args.Count; i++)
                 {
                     if (i == node.Args.Count - 1)
@@ -95,6 +95,16 @@ namespace Compiler.AST.ConsolePrintVisitor
                 _WriteIndent("+Condition:");
                 node.IfCondition.Accept(this);
                 _WriteIndent("+Then:");
+                if (!node.ElseExpression.HasValue) _isLast = true;
+                node.Then.Accept(this);
+
+                if (node.ElseExpression.HasValue)
+                {
+                    _isLast = true;
+                    _WriteIndent("+Else:");
+                    node.ElseExpression.Value.Accept(this);
+                }
+                /*
                 if (node.ElseExpression.IsEmpty) _isLast = true;
                 node.Then.Accept(this);
 
@@ -104,6 +114,7 @@ namespace Compiler.AST.ConsolePrintVisitor
                     _WriteIndent("+Else:");
                     node.ElseExpression.Get().Accept(this);
                 }
+                */
             });
         }
 
@@ -119,6 +130,7 @@ namespace Compiler.AST.ConsolePrintVisitor
                     assignment.Expression.Accept(this);
                 }
                 _WriteIndent("+In:");
+                _isLast = true;
                 node.InExpression.Accept(this);
             });
         }

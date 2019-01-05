@@ -2,6 +2,7 @@
 using Compiler.AST.CodeGenVisitor;
 using Compiler.AST.ConsolePrintVisitor;
 using Compiler.PidginParser;
+using Compiler.PidginParser.Expressions;
 using Pidgin;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using static Pidgin.Parser;
+using static Pidgin.Parser<char>;
 
 namespace Compiler
 {
@@ -18,8 +22,23 @@ namespace Compiler
         {
             LoadFile("testSource.txt");
 
+            var parser = ExpressionParser.Expression;
+
+            /*parser.SeparatedAtLeastOnce(Utils.Token(";"))
+                .RecoverWith(x => Utils.Token(";").WithResult<IEnumerable<ExprAST>>(null))
+                .Then(x => End().WithResult(x))
+                .ParseOrThrow("12 * 3 4 * (2+1)");
+                */
+                
+            //parser.ParseOrThrow("12 * 3 4 * (2 + 1)");
+
+            //String("foo").ThenReturn((ParseError<char>)null);
+            //Look
+
+            //parser.Then(End()).RecoverWith(x => Utils.Token(";").IgnoreResult()).ParseOrThrow("12 * 3 4 * (2 + 1)");
+
             //var node = PidginParser.Expressions.ExpressionParser.Expression
-             //   .ParseOrThrow("4 + 5 * alpha == (2 + 2) * 4 + 4 || b < a && a");
+            //   .ParseOrThrow("4 + 5 * alpha == (2 + 2) * 4 + 4 || b < a && a");
             //node.Accept(new ASTPrintVisitor());
             Console.ReadKey();
         }
@@ -29,7 +48,10 @@ namespace Compiler
             string text = File.ReadAllText(file);
             try
             {
+                //var nodes = FunctionDefinitionParser.FunctionDefinition.TraceResult().ParseOrThrow(text);
                 var nodes = ProgramParser.Program.ParseOrThrow(text);
+                //nodes.Accept(new ASTPrintVisitor());                                                                          //
+
                 //var nodes = FunctionDefinitionParser.FunctionDefinition.XMany().End().Parse(text);
                 foreach(var node in nodes)
                 {

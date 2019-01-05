@@ -16,6 +16,7 @@ namespace Compiler.PidginParser
     {
         public static readonly Parser<char, IEnumerable<FunctionNode>> Program
             = FunctionDefinitionParser.FunctionDefinition
-            .Many().Then(x => End().WithResult(x));
+            .Many()
+            .Then(x => End().WithResult(x));
     }
 }

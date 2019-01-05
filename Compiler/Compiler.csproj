@@ -226,6 +226,7 @@
     <Compile Include="PidginParser\IdentifierParser.cs" />
     <Compile Include="PidginParser\OperatorParser.cs" />
     <Compile Include="PidginParser\ProgramParser.cs" />
+    <Compile Include="PidginParser\Reserved.cs" />
     <Compile Include="PidginParser\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

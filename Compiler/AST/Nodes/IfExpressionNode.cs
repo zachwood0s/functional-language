@@ -1,4 +1,5 @@
-﻿using Sprache;
+﻿using Pidgin;
+using Sprache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,13 @@ namespace Compiler.AST.Nodes
     {
         private ExprAST _ifCondition;
         private ExprAST _then;
-        private IOption<ExprAST> _elseExpresson;
+        private Maybe<ExprAST> _elseExpresson;
 
         public ExprAST IfCondition => _ifCondition;
         public ExprAST Then => _then;
-        public IOption<ExprAST> ElseExpression => _elseExpresson;
+        public Maybe<ExprAST> ElseExpression => _elseExpresson;
 
-        public IfExpressionNode(ExprAST _if, ExprAST then, IOption<ExprAST> _else)
+        public IfExpressionNode(ExprAST _if, ExprAST then, Maybe<ExprAST> _else)
         {
             _ifCondition = _if;
             _then = then;

@@ -17,6 +17,6 @@ namespace Compiler.Parser.Functions
             from lparen in Parse.Char('(').Token()
             from arguments in Parse.XDelimitedBy(ExpressionParser.Expression, Parse.Char(',').Token())
             from rparen in Parse.Char(')').Token()
-            select new FunctionCallNode(ident, arguments.ToList());
+            select new FunctionCallNode(null, arguments.ToList());
     }
 }

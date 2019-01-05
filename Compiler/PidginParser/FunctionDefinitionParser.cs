@@ -18,11 +18,12 @@ namespace Compiler.PidginParser
             = Map(
                 (proto, args, body) => new FunctionNode(proto, args.ToList(), body),
                 FunctionaDeclarationParser.FunctionDeclaration,
-                IdentifierParser.LowerIdentifier.Labelled("function identifier")
+                IdentifierParser.LowerIdentifier//.Labelled("function identifier1")
                     .Then(Utils.Parenthesised(
-                        IdentifierParser.LowerIdentifier.Separated(Utils.Token(","))).Labelled("parameter list"))
+                        IdentifierParser.LowerIdentifier.Separated(Utils.Token(","))))//.Labelled("parameter list"))
                     .Then(x => Utils.Token("=").WithResult(x)),
-                ExpressionParser.Expression.Labelled("function body"));
+                ExpressionParser.Expression);//.Labelled("function body"))
+            //.Labelled("function definition");
             
               
             //= //from _ in Between(SkipWhitespaces)

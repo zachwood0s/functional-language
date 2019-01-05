@@ -19,7 +19,8 @@ namespace Compiler.PidginParser
             LetterOrDigit.Or(Char('_')).ManyString();
 
         public static readonly Parser<char, string> LowerIdentifier =
-            Utils.Token(Lowercase.Then(IdentifierCharacter, (h, t) => h + t));
+            Lookahead(Not(OneOf(Reserved.Keywords.Select(x => String(x)))))
+            .Then(Utils.Token(Lowercase.Then(IdentifierCharacter, (h, t) => h + t)));
 
         public static readonly Parser<char, ExprAST> LowerIdentifierNode =
             LowerIdentifier.SelectMany<SourcePos, ExprAST>(

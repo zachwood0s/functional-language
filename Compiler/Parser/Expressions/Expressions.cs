@@ -20,7 +20,7 @@ namespace Compiler.Parser.Expressions
             from then in Expression
             from elseExpression in Parse.String("else").Token().Named(Reserved.Keyword("else"))
                 .Then(_ => Expression).Optional()
-            select new IfExpressionNode(ifcond, then, elseExpression);
+            select new IfExpressionNode(ifcond, then, Pidgin.Maybe.Nothing<ExprAST>());
 
         public static readonly Parser<ExprAST> LetExpression =
             from _let in Parse.String("let").Token().Named(Reserved.Keyword("let"))

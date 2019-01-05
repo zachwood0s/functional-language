@@ -30,39 +30,48 @@ namespace Compiler.PidginParser.Expressions
 
         private static readonly Parser<char, ExprAST> _ifExpression
             = Map(
-                (cond, then, _else) => new IfExpressionNode(cond, then, null),
+                (cond, then, _else) => new IfExpressionNode(cond, then, _else),
                 Utils.Token("if").Then(Rec(() => Expression)),
                 Utils.Token("then").Then(Rec(() => Expression)),
                 Utils.Token("else").Then(Rec(() => Expression)).Optional())
-            .Select<ExprAST>(x => x);
+            .Cast<ExprAST>();
 
         private static readonly Parser<char, ExprAST> _letExpression
             = Map(
                 (assignments, expression) => new LetExpressionNode(assignments.ToList(), expression),
-                Utils.Token("let").Then(Rec(() => _assignment).SeparatedAndOptionallyTerminated(Utils.Token(";"))),
-                Utils.Token("in").Then(Rec(() => Expression)))
-            .Select<ExprAST>(x => x);
+                Rec(() => _letPart),
+                Rec(() => Expression))
+            .Cast<ExprAST>();
+
+        private static readonly Parser<char, IEnumerable<LetAssignment>> _letPart
+            = Rec(() => Try(_assignment)).SeparatedAndOptionallyTerminatedAtLeastOnce(Utils.Token(";"))
+                .Between(Utils.Token("let"), Utils.Token("in"));
+
+        private static readonly Parser<char, ExprAST> _inPart
+            = Utils.Token("in").Then(Rec(() => Expression)).Labelled("let expression");
+
 
         private static readonly Parser<char, LetAssignment> _assignment
             = Map(
                 (ident, expr) => new LetAssignment { Identifier = ident, Expression = expr },
                 IdentifierParser.LowerIdentifier.Labelled("identifier"),
-                Utils.Token("=").Then(Rec(() => Expression)));
+                Utils.Token("=").Then(Rec(() => Expression))).Labelled("assignment");
+
 
         private static Parser<char, ExprAST> _BuildExpressionParser()
         {
             Parser<char, ExprAST> expr = null;
 
             var term = OneOf(
-                _letExpression,
-                _ifExpression,
+                _letExpression.Labelled("let expression"),
+                _ifExpression.Labelled("if expression"),
                 _identifier,
                 _literal,
                 _Parenthesised(Rec(() => expr)).Labelled("parenthesised expression")
                 );
 
             var call = Utils.Parenthesised(Rec(() => expr).Separated(Utils.Token(",")))
-                .Select<Func<ExprAST, ExprAST>>(args => method => new FunctionCallNode("fake", args.ToList()))
+                .Select<Func<ExprAST, ExprAST>>(args => method => new FunctionCallNode(method, args.ToList()))
                 .Labelled("function call");
 
             var opTable = OperatorParser.GenerateOperatorTable();
@@ -71,10 +80,12 @@ namespace Compiler.PidginParser.Expressions
             expr = Pidgin.Expression.ExpressionParser.Build(
                 term,
                 opTable
-            ).Labelled("expression");
+            );
 
             return expr;
         }
+
+
 
         public static readonly Parser<char, ExprAST> Expression = _BuildExpressionParser();
     }
