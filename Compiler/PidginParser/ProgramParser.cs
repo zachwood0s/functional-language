@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using static Pidgin.Parser;
+using Pidgin.Comment;
 using static Pidgin.Parser<char>;
 
 namespace Compiler.PidginParser

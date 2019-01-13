@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Compiler.AST.Nodes;
 using Compiler.Parser;
 using LLVMSharp;
-
+using static Compiler.PidginParser.OperatorParser;
 
 namespace Compiler.AST.CodeGenVisitor
 {
@@ -70,19 +70,36 @@ namespace Compiler.AST.CodeGenVisitor
             LLVMValueRef res;
             switch (node.Operator)
             {
-                case BinaryOperator.Addition: 
+                case BinaryOperatorOpCode.Addition: 
                     res = LLVM.BuildFAdd(_builder, left, right, "addtmp");
                     break;
-                case BinaryOperator.Subtraction:
+                case BinaryOperatorOpCode.Subtraction:
                     res = LLVM.BuildFSub(_builder, left, right, "subtmp");
                     break;
-                case BinaryOperator.Multiplication:
+                case BinaryOperatorOpCode.Multiplication:
                     res = LLVM.BuildFMul(_builder, left, right, "multmp");
                     break;
-                case BinaryOperator.LessThan:
+                case BinaryOperatorOpCode.LessThan:
                     left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealULT, left, right, "cmptmp");
                     res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
                     break;
+                case BinaryOperatorOpCode.LessThanEq:
+                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealULE, left, right, "cmptmp");
+                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
+                    break;
+                case BinaryOperatorOpCode.GreaterThan:
+                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUGT, left, right, "cmptmp");
+                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
+                    break;
+                case BinaryOperatorOpCode.GreaterThanEq:
+                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUGE, left, right, "cmptmp");
+                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
+                    break;
+                case BinaryOperatorOpCode.Equality:
+                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUEQ, left, right, "cmptmp");
+                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
+                    break;
+
                 default:
                     //Handle predefined operator
                     var function = LLVM.GetNamedFunction(_module, $"binary{node.Operator}");
@@ -96,6 +113,11 @@ namespace Compiler.AST.CodeGenVisitor
         public void Visit(ConstantDoubleNode node)
         {
             _valueStack.Push(LLVM.ConstReal(LLVM.DoubleType(), node.Value));
+        }
+
+        public void Visit(ConstantIntegerNode node)
+        {
+            _valueStack.Push(LLVM.ConstReal(LLVM.Int32Type(), node.Value));
         }
 
         public void Visit(UnaryOperatorNode node)
@@ -161,7 +183,6 @@ namespace Compiler.AST.CodeGenVisitor
                 throw;
             }
             LLVM.BuildRet(_builder, _valueStack.Pop());
-
             LLVM.VerifyFunction(function, LLVMVerifierFailureAction.LLVMPrintMessageAction);
             if(OPTIMIZE) LLVM.RunFunctionPassManager(_functionPassManager, function);
             _valueStack.Push(function);
@@ -169,7 +190,7 @@ namespace Compiler.AST.CodeGenVisitor
 
         public void Visit(PrototypeNode node)
         {
-            var argCount = (uint)node.ArgTypes.Count;
+            var argCount = (uint)node.Type.ParameterTypes.Count;
             var arguments = new LLVMTypeRef[argCount];
 
             var function = LLVM.GetNamedFunction(_module, node.Name);
@@ -220,7 +241,6 @@ namespace Compiler.AST.CodeGenVisitor
         {
             node.IfCondition.Accept(this);
             var condV = _valueStack.Pop();
-
             condV = LLVM.BuildFCmp(
                 _builder,
                 LLVMRealPredicate.LLVMRealONE,
@@ -243,7 +263,7 @@ namespace Compiler.AST.CodeGenVisitor
             thenBB = LLVM.GetInsertBlock(_builder);
 
             LLVM.PositionBuilderAtEnd(_builder, elseBB);
-            node.ElseExpression.Value.Accept(this);
+            node.ElseExpression.Accept(this);
             var elseV = _valueStack.Pop();
             LLVM.BuildBr(_builder, mergeBB);
             elseBB = LLVM.GetInsertBlock(_builder);
@@ -278,6 +298,11 @@ namespace Compiler.AST.CodeGenVisitor
             }
         }
 
+        public void Visit(IdentifierTypeNode node)
+        {
+            throw new NotImplementedException();
+        }
+
         private LLVMValueRef _CreateEntryBlockAlloca(LLVMValueRef function, string varName)
         {
             var tempB = LLVM.CreateBuilder();
@@ -286,6 +311,5 @@ namespace Compiler.AST.CodeGenVisitor
 
             return LLVM.BuildAlloca(tempB, LLVM.DoubleType(), varName);
         }
-
     }
 }

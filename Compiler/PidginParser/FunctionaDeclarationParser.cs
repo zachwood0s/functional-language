@@ -14,9 +14,8 @@ namespace Compiler.PidginParser
     {
         public static readonly Parser<char, PrototypeNode> FunctionDeclaration
             = Map(
-                (ident, _params, _return) => new PrototypeNode(ident, _params.ToList(), _return),
+                (ident, type) => new PrototypeNode(ident, type),
                 IdentifierParser.LowerIdentifier,
-                Utils.Token(":").Then(IdentifierParser.UpperIdentifier.SeparatedAtLeastOnce(Utils.Token(","))),
-                Utils.Token("->").Then(IdentifierParser.UpperIdentifier));
+                Utils.Token(":").Then(TypeParser.FunctionType));
     }
 }

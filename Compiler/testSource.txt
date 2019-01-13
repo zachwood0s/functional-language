@@ -5,7 +5,7 @@ test(n) =
 
 factorial: Int -> Int
 factorial(n) = 
-	if n then 1
+	if n < 1 then 1
 	else n * factorial(n-1)
 
 sum: Int, Int -> Int
@@ -21,7 +21,7 @@ testFunction(a) =
 
 fib : Int -> Int
 fib(a) = 
-	if a then 1
+	if a < 3 then 1
 	else fib(a-1) + fib(a-2)
 
 
@@ -33,3 +33,7 @@ fib2(x) =
 		fib2 = fib2(x-2)
 	in
 		fib1 + fib2
+
+main: Int -> Int
+main(a) = fib(a)
+	

@@ -26,7 +26,7 @@ namespace Compiler.Parser.Functions
             from parameters in ParameterList
             from returnSeparator in FunctionReturnSeparator
             from returnType in ReturnType
-            select new PrototypeNode(ident, parameters.ToList(), returnType);
+            select new PrototypeNode(ident, null);
 
         public static readonly Parser<IEnumerable<string>> ParameterList =
             from types in Parse.DelimitedBy(TypeParser.TypeUsage, ParameterListDelimeter)

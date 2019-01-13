@@ -11,6 +11,7 @@ using Pidgin;
 using Pidgin.Expression;
 using static Pidgin.Parser;
 using static Pidgin.Parser<char>;
+using Compiler.AST.Types;
 
 namespace Compiler.PidginParser.Expressions
 {
@@ -33,7 +34,7 @@ namespace Compiler.PidginParser.Expressions
                 (cond, then, _else) => new IfExpressionNode(cond, then, _else),
                 Utils.Token("if").Then(Rec(() => Expression)),
                 Utils.Token("then").Then(Rec(() => Expression)),
-                Utils.Token("else").Then(Rec(() => Expression)).Optional())
+                Utils.Token("else").Then(Rec(() => Expression)))
             .Cast<ExprAST>();
 
         private static readonly Parser<char, ExprAST> _letExpression
@@ -53,10 +54,15 @@ namespace Compiler.PidginParser.Expressions
 
         private static readonly Parser<char, LetAssignment> _assignment
             = Map(
-                (ident, expr) => new LetAssignment { Identifier = ident, Expression = expr },
+                (type, ident, expr) => new LetAssignment { Identifier = ident, Expression = expr, Type = type },
+                Rec(() => _assignmentType).Before(Utils.Token(";")).Labelled("type declaration"),
                 IdentifierParser.LowerIdentifier.Labelled("identifier"),
                 Utils.Token("=").Then(Rec(() => Expression))).Labelled("assignment");
 
+        private static readonly Parser<char, INodeType> _assignmentType
+            = IdentifierParser.LowerIdentifier.Labelled("identifier")
+            .Then(Utils.Token(":"))
+            .Then(TypeParser.AnyType);
 
         private static Parser<char, ExprAST> _BuildExpressionParser()
         {
@@ -81,7 +87,6 @@ namespace Compiler.PidginParser.Expressions
                 term,
                 opTable
             );
-
             return expr;
         }
 

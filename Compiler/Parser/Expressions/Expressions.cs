@@ -19,8 +19,8 @@ namespace Compiler.Parser.Expressions
             from _then in Parse.String("then").Token().Named(Reserved.Keyword("then"))
             from then in Expression
             from elseExpression in Parse.String("else").Token().Named(Reserved.Keyword("else"))
-                .Then(_ => Expression).Optional()
-            select new IfExpressionNode(ifcond, then, Pidgin.Maybe.Nothing<ExprAST>());
+                .Then(_ => Expression)
+            select new IfExpressionNode(ifcond, then, elseExpression);
 
         public static readonly Parser<ExprAST> LetExpression =
             from _let in Parse.String("let").Token().Named(Reserved.Keyword("let"))
@@ -47,7 +47,7 @@ namespace Compiler.Parser.Expressions
             .XOr(LetExpression)
             .XOr(FunctionCallParser.FunctionCall
                 .Or<ExprAST>(IdentifierParser.LowerIdentifier.Span()
-                    .Select(x => new IdentifierNode(x.Value, x)).Named("identifier")));
+                    .Select(x => new IdentifierNode(x.Value, new Pidgin.SourcePos())).Named("identifier")));
 
         public static readonly Parser<ExprAST> Operand =
             ((from sign in Parse.Char('-')

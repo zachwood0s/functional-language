@@ -12,13 +12,13 @@ namespace Compiler.AST.Nodes
     {
         private ExprAST _ifCondition;
         private ExprAST _then;
-        private Maybe<ExprAST> _elseExpresson;
+        private ExprAST _elseExpresson;
 
         public ExprAST IfCondition => _ifCondition;
         public ExprAST Then => _then;
-        public Maybe<ExprAST> ElseExpression => _elseExpresson;
+        public ExprAST ElseExpression => _elseExpresson;
 
-        public IfExpressionNode(ExprAST _if, ExprAST then, Maybe<ExprAST> _else)
+        public IfExpressionNode(ExprAST _if, ExprAST then, ExprAST _else)
         {
             _ifCondition = _if;
             _then = then;

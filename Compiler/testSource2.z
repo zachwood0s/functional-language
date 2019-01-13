@@ -1,0 +1,20 @@
+﻿/*test: Int -> Int
+test(n) =
+	let x = n * n + 5 - 3
+	in x - x + 5
+*/
+
+test: Float -> Float //Int-> Int
+test(n) = 
+	let // x = n*n;
+		y: Float;
+		y = n * 2;
+		z: Float;
+		z = y * 3;
+		/*v = z;
+		/*k = z;*/
+		j = z;
+		*/
+	in
+		z
+	

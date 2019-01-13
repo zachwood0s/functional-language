@@ -1,5 +1,6 @@
 ﻿using Compiler.AST;
 using Compiler.AST.Nodes;
+using Compiler.AST.Types;
 using Pidgin;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,7 @@ namespace Compiler.PidginParser
             .Then(Utils.Token(Lowercase.Then(IdentifierCharacter, (h, t) => h + t)));
 
         public static readonly Parser<char, ExprAST> LowerIdentifierNode =
-            LowerIdentifier.SelectMany<SourcePos, ExprAST>(
-                _ => CurrentPos,
-                (ident, pos) => new IdentifierNode(ident, null));
+            LowerIdentifier.Then(CurrentPos, (ident, pos) => new IdentifierNode(ident, pos)).Cast<ExprAST>();
 
         public static readonly Parser<char, string> UpperIdentifier =
             Utils.Token(Uppercase.Then(IdentifierCharacter, (h, t) => h + t));

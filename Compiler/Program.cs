@@ -1,6 +1,7 @@
 ﻿using Compiler.AST;
 using Compiler.AST.CodeGenVisitor;
 using Compiler.AST.ConsolePrintVisitor;
+using Compiler.AST.TypeCheckVisitor;
 using Compiler.PidginParser;
 using Compiler.PidginParser.Expressions;
 using Pidgin;
@@ -20,7 +21,7 @@ namespace Compiler
     {
         public static void Main(string[] args)
         {
-            LoadFile("testSource.txt");
+            LoadFile("testSource2.z");
 
             var parser = ExpressionParser.Expression;
 
@@ -29,10 +30,8 @@ namespace Compiler
                 .Then(x => End().WithResult(x))
                 .ParseOrThrow("12 * 3 4 * (2+1)");
                 */
-                
-            //parser.ParseOrThrow("12 * 3 4 * (2 + 1)");
 
-            //String("foo").ThenReturn((ParseError<char>)null);
+            //parser.ParseOrThrow("12 * 3 4 * (2 + 1)");
             //Look
 
             //parser.Then(End()).RecoverWith(x => Utils.Token(";").IgnoreResult()).ParseOrThrow("12 * 3 4 * (2 + 1)");
@@ -58,6 +57,12 @@ namespace Compiler
                     node.Accept(new ASTPrintVisitor());
                 }
                 //node(new ASTPrintVisitor());
+
+                var typechecker = new ASTTypeCheckVisitor();
+                foreach(var node in nodes)
+                {
+                    node.Accept(typechecker);
+                }
 
                 var codegen = new ASTCodeGenVisitor("my cool jit");
                 foreach(var node in nodes)

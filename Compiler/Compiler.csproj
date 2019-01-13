@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,6 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LLVMSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -204,10 +206,16 @@
     <Compile Include="AST\Nodes\FunctionNode.cs" />
     <Compile Include="AST\Nodes\FunctionCallNode.cs" />
     <Compile Include="AST\Nodes\IdentifierNode.cs" />
+    <Compile Include="AST\Nodes\IdentifierTypeNode.cs" />
     <Compile Include="AST\Nodes\IfExpressionNode.cs" />
     <Compile Include="AST\Nodes\LetExpressionNode.cs" />
     <Compile Include="AST\Nodes\PrototypeNode.cs" />
     <Compile Include="AST\Nodes\UnaryOperatorNode.cs" />
+    <Compile Include="AST\TypeCheckVisitor\ASTTypeCheckVisitor.cs" />
+    <Compile Include="AST\TypeCheckVisitor\TypeCheckException.cs" />
+    <Compile Include="AST\Types\FunctionType.cs" />
+    <Compile Include="AST\Types\INodeType.cs" />
+    <Compile Include="AST\Types\VariableType.cs" />
     <Compile Include="Parser\Basics\Constants.cs" />
     <Compile Include="Parser\Basics\Identifiers.cs" />
     <Compile Include="Parser\Basics\Operators.cs" />
@@ -220,6 +228,7 @@
     <Compile Include="Parser\Functions\FunctionDefinition.cs" />
     <Compile Include="Parser\OperatorTypes.cs" />
     <Compile Include="Parser\ParseExtensions.cs" />
+    <Compile Include="PidginParser\CommentParser.cs" />
     <Compile Include="PidginParser\ExpressionParser.cs" />
     <Compile Include="PidginParser\FunctionaDeclarationParser.cs" />
     <Compile Include="PidginParser\FunctionDefinitionParser.cs" />
@@ -227,6 +236,7 @@
     <Compile Include="PidginParser\OperatorParser.cs" />
     <Compile Include="PidginParser\ProgramParser.cs" />
     <Compile Include="PidginParser\Reserved.cs" />
+    <Compile Include="PidginParser\TypeParser.cs" />
     <Compile Include="PidginParser\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -234,6 +244,9 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="testSource2.z">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="testSource.txt">

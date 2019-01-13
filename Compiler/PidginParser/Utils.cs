@@ -11,7 +11,10 @@ namespace Compiler.PidginParser
     public static class Utils
     {
         public static Parser<char, T> Token<T>(Parser<char, T> token)
-            => Try(token).Before(SkipWhitespaces);
+            => CommentParser.Comments.Then(Try(token).Between(SkipWhitespaces));//CommentParser.LineComment.SkipMany()
+            //.Then(SkipWhitespaces)
+            //SkipWhitespaces
+            //.Then(Try(token));
 
         public static Parser<char, string> Token(string token)
             => Token(String(token));

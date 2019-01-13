@@ -1,0 +1,103 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Z",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#meta"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.z",
+				"match": "\\b(if|else|then|let|in)\\b"
+			},
+			{
+				"name": "keyword.operator.arrow.z",
+				"match": "(->)"
+			},
+			{
+      "match": "(<=|\\|\\||&&|>=|\\=|\\=\\=|\\+|\\-|\\*|\\/|\\^)",
+			"name": "keyword.operator.elm"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.z",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.z",
+					"match": "\\\\."
+				}
+			]
+		},
+		"constants": {
+			"patterns": [{
+				"name": "constant.numeric.float.z",
+				"match": "\\b([-+]?[0-9]+\\.[0-9]+)\\b"
+			},
+			{
+				"name": "constant.numeric.z",
+				"match": "\\b([0-9]+)\\b"
+			}] 
+		},
+		"meta": {
+			"patterns":[{
+				"name": "meta.identifier.z",
+				"match": "\\b[a-z][a-zA-Z0-9_]*\\b"
+			},
+			{
+				"name": "meta.type.z",
+				"match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+			}]
+		},
+    "block_comment": {
+      "applyEndPatternLast": 1,
+      "begin": "\\/\\*(?!#)",
+      "captures": {
+        "0": {
+          "name": "punctuation.definition.comment.elm"
+        }
+      },
+      "end": "\\*/",
+      "name": "comment.block.elm",
+      "patterns": [
+        {
+          "include": "#block_comment"
+        }
+      ]
+    },
+		"comments": {
+			"patterns": [
+				{
+					"captures": {
+						"1":{
+							"name": "punctuation.definition.comment.z"
+						}
+					},
+					"begin": "//",
+					"end": "$",
+					"name": "comment.line.double-slash.z"
+				},
+        {
+          "include": "#block_comment"
+        }
+			]
+		}
+
+	},
+	"scopeName": "source.z"
+}

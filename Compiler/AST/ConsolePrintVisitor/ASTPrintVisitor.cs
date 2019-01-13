@@ -36,6 +36,14 @@ namespace Compiler.AST.ConsolePrintVisitor
             });
         }
 
+        public void Visit(ConstantIntegerNode node)
+        {
+            _DoPrint(() => 
+            {
+                Console.WriteLine(node.Value);
+            });
+        }
+
         public void Visit(UnaryOperatorNode node)
         {
             _DoPrint(() =>
@@ -78,7 +86,7 @@ namespace Compiler.AST.ConsolePrintVisitor
         {
             _DoPrint(() =>
             {
-                Console.WriteLine($"{node.Name}: {string.Join(",",node.ArgTypes)} -> {node.Return}");
+                Console.WriteLine($"{node.Name}: {node.Type}");
             });
         }
 
@@ -95,26 +103,11 @@ namespace Compiler.AST.ConsolePrintVisitor
                 _WriteIndent("+Condition:");
                 node.IfCondition.Accept(this);
                 _WriteIndent("+Then:");
-                if (!node.ElseExpression.HasValue) _isLast = true;
                 node.Then.Accept(this);
 
-                if (node.ElseExpression.HasValue)
-                {
-                    _isLast = true;
-                    _WriteIndent("+Else:");
-                    node.ElseExpression.Value.Accept(this);
-                }
-                /*
-                if (node.ElseExpression.IsEmpty) _isLast = true;
-                node.Then.Accept(this);
-
-                if (node.ElseExpression.IsDefined)
-                {
-                    _isLast = true;
-                    _WriteIndent("+Else:");
-                    node.ElseExpression.Get().Accept(this);
-                }
-                */
+                _isLast = true;
+                _WriteIndent("+Else:");
+                node.ElseExpression.Accept(this);
             });
         }
 
@@ -126,13 +119,18 @@ namespace Compiler.AST.ConsolePrintVisitor
                 _WriteIndent("+Assignments:");
                 foreach(var assignment in node.Assignments)
                 {
-                    _WriteIndent($"++ {assignment.Identifier}:");
+                    _WriteIndent($"++ {assignment.Identifier}: {assignment.Type}");
                     assignment.Expression.Accept(this);
                 }
                 _WriteIndent("+In:");
                 _isLast = true;
                 node.InExpression.Accept(this);
             });
+        }
+
+        public void Visit(IdentifierTypeNode node)
+        {
+            _DoPrint(() => Console.WriteLine($"{node.Name}'s Type: {node.Type}"));
         }
 
         #region Helper Methods
@@ -173,6 +171,7 @@ namespace Compiler.AST.ConsolePrintVisitor
             if(removeIndex > 0)
                 _currentIndent = _currentIndent.Remove(removeIndex);
         }
+
         #endregion
     }
 }

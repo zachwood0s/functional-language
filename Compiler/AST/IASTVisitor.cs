@@ -12,11 +12,13 @@ namespace Compiler.AST
         void Visit(ASTNode node);
         void Visit(BinaryOperatorNode node);
         void Visit(ConstantDoubleNode node);
+        void Visit(ConstantIntegerNode node);
         void Visit(UnaryOperatorNode node);
         void Visit(FunctionCallNode node);
         void Visit(FunctionNode node);
         void Visit(PrototypeNode node);
         void Visit(IdentifierNode node);
+        void Visit(IdentifierTypeNode node);
         void Visit(IfExpressionNode node);
         void Visit(LetExpressionNode node);
     }

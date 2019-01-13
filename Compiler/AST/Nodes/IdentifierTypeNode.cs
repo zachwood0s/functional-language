@@ -1,6 +1,4 @@
 ﻿using Compiler.AST.Types;
-using Pidgin;
-using Sprache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +7,20 @@ using System.Threading.Tasks;
 
 namespace Compiler.AST.Nodes
 {
-    public class IdentifierNode : ExprAST
+    public class IdentifierTypeNode: ASTNode
     {
+        private VariableType _type;
         private string _name;
-        private SourcePos _span;
 
+        public VariableType Type => _type;
         public string Name => _name;
-        public SourcePos Span => _span;
 
-        public IdentifierNode(string name, SourcePos span)
+        public IdentifierTypeNode(string name, VariableType type)
         {
             _name = name;
-            _span = span;
+            _type = type;
         }
+
         public override void Accept(IASTVisitor visitor)
         {
             visitor.Visit(this);

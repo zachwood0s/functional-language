@@ -29,7 +29,7 @@ namespace Compiler.Parser.Functions
             from newline in WhiteSpace.NewLine
             from identifier in Parse.String(proto.Name)
                                     .Named($"function identifier (e.g. {proto.Name})")
-            from args in ParameterList(proto.ArgTypes.Count)
+            from args in ParameterList(proto.Type.ParameterTypes.Count)
             from equal in OperatorParser.Assign
             from body in ExpressionParser.Expression
             select new FunctionNode(proto, args.ToList(), body);

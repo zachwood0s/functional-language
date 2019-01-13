@@ -1,4 +1,5 @@
-﻿using Sprache;
+﻿using Pidgin;
+using Sprache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Compiler.AST.CodeGenVisitor
 {
     public class CodeGenException<T>: Exception
     {
-        public CodeGenException(string message, ITextSpan<T> span): base($"Code generation error at {span.Start}: {message}")
+        public CodeGenException(string message, SourcePos span): base($"Code generation error at line {span.Line}, col {span.Col}: {message}")
         {
         }
     }

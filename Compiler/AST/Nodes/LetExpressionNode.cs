@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Compiler.AST.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,7 @@ namespace Compiler.AST.Nodes
     public struct LetAssignment
     {
         public string Identifier { get; set; }
+        public INodeType Type { get; set; }
         public ExprAST Expression { get; set; }
     }
 }
