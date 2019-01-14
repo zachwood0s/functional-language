@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Compiler.AST.Nodes;
+using Compiler.AST.Types;
 using Compiler.Parser;
 using LLVMSharp;
 using static Compiler.PidginParser.OperatorParser;
@@ -32,6 +33,7 @@ namespace Compiler.AST.CodeGenVisitor
             _modulePassManager = LLVM.CreatePassManager();
 
             _SetupPasses();
+            _SetupDefaultCasts();
         }
 
         private void _SetupPasses()
@@ -166,12 +168,11 @@ namespace Compiler.AST.CodeGenVisitor
                 var param = LLVM.GetParam(function, (uint)i);
                 LLVM.SetValueName(param, argName);
 
-                var alloca = _CreateEntryBlockAlloca(function, argName);
+                var alloca = _CreateEntryBlockAlloca(function, argName, LLVM.DoubleType());
                 LLVM.BuildStore(_builder, param, alloca); 
 
                 _namedValues[argName] = alloca;
             }
-
 
             try
             {
@@ -233,7 +234,7 @@ namespace Compiler.AST.CodeGenVisitor
             }
             else
             {
-                throw new CodeGenException<string>($"Unknown variable name '{node.Name}'", node.Span);
+                throw new CodeGenException($"Unknown variable name '{node.Name}'", node.Span);
             }
         }
 
@@ -303,13 +304,14 @@ namespace Compiler.AST.CodeGenVisitor
             throw new NotImplementedException();
         }
 
-        private LLVMValueRef _CreateEntryBlockAlloca(LLVMValueRef function, string varName)
+        private LLVMValueRef _CreateEntryBlockAlloca(LLVMValueRef function, string varName, LLVMTypeRef type)
         {
             var tempB = LLVM.CreateBuilder();
             var entry = function.GetEntryBasicBlock();
             LLVM.PositionBuilder(tempB, entry, entry.GetFirstInstruction());
 
-            return LLVM.BuildAlloca(tempB, LLVM.DoubleType(), varName);
+            return LLVM.BuildAlloca(tempB, type, varName);
         }
+
     }
 }

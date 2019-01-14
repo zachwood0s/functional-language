@@ -26,8 +26,13 @@ namespace Compiler.PidginParser.Expressions
 
         private static readonly Parser<char, ExprAST> _literal 
             = Utils.Token(DecimalNum)
-                .Select<ExprAST>(value => new ConstantDoubleNode(value))
-                .Labelled("decimal literal");
+                .Select<ExprAST>(value => new ConstantIntegerNode(value))
+                .Labelled("integer literal");
+
+        private static readonly Parser<char, ExprAST> _literalFloat
+            = Utils.Token(Utils.UnsignedReal())
+            .Select<ExprAST>(value => new ConstantDoubleNode(value))
+            .Labelled("float literal");
 
         private static readonly Parser<char, ExprAST> _ifExpression
             = Map(
@@ -72,7 +77,7 @@ namespace Compiler.PidginParser.Expressions
                 _letExpression.Labelled("let expression"),
                 _ifExpression.Labelled("if expression"),
                 _identifier,
-                _literal,
+                Try(_literalFloat).Or(_literal),
                 _Parenthesised(Rec(() => expr)).Labelled("parenthesised expression")
                 );
 
@@ -80,8 +85,13 @@ namespace Compiler.PidginParser.Expressions
                 .Select<Func<ExprAST, ExprAST>>(args => method => new FunctionCallNode(method, args.ToList()))
                 .Labelled("function call");
 
+            var cast = Utils.Token("::").Then(TypeParser.AnyType)
+                .Select<Func<ExprAST, ExprAST>>(nodeType => method => new TypeCastNode(nodeType, method))
+                .Labelled("type cast");
+
             var opTable = OperatorParser.GenerateOperatorTable();
             opTable = opTable.Prepend(Operator.PostfixChainable(call));
+            opTable = opTable.Append(Operator.Postfix(cast));
 
             expr = Pidgin.Expression.ExpressionParser.Build(
                 term,

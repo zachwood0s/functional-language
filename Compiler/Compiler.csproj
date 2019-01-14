@@ -198,6 +198,7 @@
     <Compile Include="AST\AST.cs" />
     <Compile Include="AST\ASTNode.cs" />
     <Compile Include="AST\CodeGenVisitor\CodeGenException.cs" />
+    <Compile Include="AST\CodeGenVisitor\TypeCasting.cs" />
     <Compile Include="AST\ConsolePrintVisitor\ASTPrintVisitor.cs" />
     <Compile Include="AST\IASTVisitor.cs" />
     <Compile Include="AST\Nodes\BinaryOperatorNode.cs" />
@@ -210,6 +211,7 @@
     <Compile Include="AST\Nodes\IfExpressionNode.cs" />
     <Compile Include="AST\Nodes\LetExpressionNode.cs" />
     <Compile Include="AST\Nodes\PrototypeNode.cs" />
+    <Compile Include="AST\Nodes\TypeCastNode.cs" />
     <Compile Include="AST\Nodes\UnaryOperatorNode.cs" />
     <Compile Include="AST\TypeCheckVisitor\ASTTypeCheckVisitor.cs" />
     <Compile Include="AST\TypeCheckVisitor\TypeCheckException.cs" />

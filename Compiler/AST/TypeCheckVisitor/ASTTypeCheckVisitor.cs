@@ -14,11 +14,39 @@ namespace Compiler.AST.TypeCheckVisitor
         private Stack<INodeType> _typeStack;
         private Stack<INodeType> _expectedTypes;
 
+        private List<AcceptableTypeCast> _knownCasts;
+
+        private class AcceptableTypeCast
+        {
+            public INodeType From { get; set; }
+            public INodeType To { get; set; }
+
+            public override bool Equals(object obj)
+                => obj is AcceptableTypeCast a
+                ? a.From.IsMatch(From) && a.To.IsMatch(To)
+                : false;
+        }
+
+
         public ASTTypeCheckVisitor()
         {
             _types = new Dictionary<string, INodeType>();
             _typeStack = new Stack<INodeType>();
             _expectedTypes = new Stack<INodeType>();
+            _SetupKnownCasts();
+        }
+
+        private void _SetupKnownCasts()
+        {
+            _knownCasts = new List<AcceptableTypeCast>()
+            {
+                new AcceptableTypeCast(){From = DefaultTypes.Int, To = DefaultTypes.Float},
+                new AcceptableTypeCast(){From = DefaultTypes.Float, To = DefaultTypes.Int},
+                new AcceptableTypeCast(){From = DefaultTypes.Char, To = DefaultTypes.Int},
+                new AcceptableTypeCast(){From = DefaultTypes.Int, To = DefaultTypes.Char},
+                new AcceptableTypeCast(){From = DefaultTypes.Char, To = DefaultTypes.Float},
+                new AcceptableTypeCast(){From = DefaultTypes.Float, To = DefaultTypes.Char},
+            };
         }
 
         public void Visit(ASTNode node)
@@ -34,7 +62,7 @@ namespace Compiler.AST.TypeCheckVisitor
             node.Right.Accept(this);
             var rightType = _typeStack.Pop();
 
-            if (!leftType.IsMatch(rightType)) throw new TypeCheckException($"Cannot implicitly convert {leftType} to {rightType}");
+            if (!leftType.IsMatch(rightType)) throw new TypeCheckException($"Cannot implicitly convert {rightType} to {leftType}");
 
             _typeStack.Push(leftType);
         }
@@ -161,6 +189,19 @@ namespace Compiler.AST.TypeCheckVisitor
             var bodyType = _typeStack.Pop();
             var expectedType = _expectedTypes.Peek();
             if (!bodyType.IsMatch(expectedType)) throw new TypeCheckException($"In part of let expression does not match expected type {expectedType}. In type: {bodyType}");
+        }
+
+        public void Visit(TypeCastNode node)
+        {
+            node.Expression.Accept(this);
+            var exprType = _typeStack.Pop();
+
+            if (exprType.IsMatch(node.ToType) || _knownCasts.Contains(new AcceptableTypeCast() { From = exprType, To = node.ToType }))
+            {
+                _typeStack.Push(node.ToType);
+                node.FromType = exprType;
+            }
+            else throw new TypeCheckException($"Cannot implicitly convert {exprType} to {node.ToType}");
         }
     }
 }

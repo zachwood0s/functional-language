@@ -21,5 +21,14 @@ namespace Compiler.PidginParser
 
         public static Parser<char, T> Parenthesised<T>(Parser<char, T> parser)
             => parser.Between(Token("("), Token(")"));
+
+        public static Parser<char, double> UnsignedReal()
+            => Map(
+                (intPart, decimalPart) 
+                => intPart.HasValue 
+                    ? double.Parse(intPart.Value + decimalPart) 
+                    : double.Parse(decimalPart),
+                UnsignedInt(10).Optional(),
+                Char('.').Then(Digit.AtLeastOnceString(), (dot, fraction) => dot + fraction));
     }
 }

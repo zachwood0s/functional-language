@@ -77,7 +77,7 @@ namespace Compiler
                 Console.WriteLine(text);
                 Console.WriteLine(e.Message);
             }
-            catch(CodeGenException<string> e)
+            catch(CodeGenException e)
             {
                 Console.WriteLine(text);
                 Console.WriteLine(e.Message);

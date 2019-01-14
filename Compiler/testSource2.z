@@ -4,13 +4,13 @@ test(n) =
 	in x - x + 5
 */
 
-test: Float -> Float //Int-> Int
+test: Float -> Int //Int-> Int
 test(n) = 
 	let // x = n*n;
 		y: Float;
-		y = n * 2;
-		z: Float;
-		z = y * 3;
+		y = (n * 2.0)::Float;
+		z: Int;
+		z = (y::Int) * (3.5 :: Int);
 		/*v = z;
 		/*k = z;*/
 		j = z;

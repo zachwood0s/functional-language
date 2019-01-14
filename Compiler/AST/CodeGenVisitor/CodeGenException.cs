@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Compiler.AST.CodeGenVisitor
 {
-    public class CodeGenException<T>: Exception
+    public class CodeGenException: Exception
     {
         public CodeGenException(string message, SourcePos span): base($"Code generation error at line {span.Line}, col {span.Col}: {message}")
         {

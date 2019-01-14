@@ -21,5 +21,6 @@ namespace Compiler.AST
         void Visit(IdentifierTypeNode node);
         void Visit(IfExpressionNode node);
         void Visit(LetExpressionNode node);
+        void Visit(TypeCastNode node);
     }
 }

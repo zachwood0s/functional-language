@@ -28,6 +28,7 @@ namespace Compiler.AST.Types
     {
         public static readonly VariableType Float = new VariableType("Float");
         public static readonly VariableType Int = new VariableType("Int");
+        public static readonly VariableType Char = new VariableType("Char");
         public static readonly VariableType Bool = new VariableType("Bool");
     }
 

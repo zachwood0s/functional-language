@@ -32,7 +32,7 @@ namespace Compiler.AST.ConsolePrintVisitor
         {
             _DoPrint(() => 
             {
-                Console.WriteLine(node.Value);
+                Console.WriteLine($"{node.Value:F1}");
             });
         }
 
@@ -131,6 +131,15 @@ namespace Compiler.AST.ConsolePrintVisitor
         public void Visit(IdentifierTypeNode node)
         {
             _DoPrint(() => Console.WriteLine($"{node.Name}'s Type: {node.Type}"));
+        }
+
+        public void Visit(TypeCastNode node)
+        {
+            _DoPrint(() =>
+            {
+                Console.WriteLine($"Cast to: {node.ToType}");
+                node.Expression.Accept(this);
+            });
         }
 
         #region Helper Methods
