@@ -1,6 +1,7 @@
 ﻿using Compiler.AST.Nodes;
 using Compiler.AST.Types;
 using LLVMSharp;
+using Pidgin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace Compiler.AST.CodeGenVisitor
     public partial class ASTCodeGenVisitor
     {
         private List<TypeCast> _typeCasts;
+        private Dictionary<INodeType, LLVMTypeRef> _llvmTypes;
+
         private class TypeCast
         {
             public INodeType To { get; set; }
@@ -47,24 +50,35 @@ namespace Compiler.AST.CodeGenVisitor
 
         private void _SetupDefaultCasts()
         {
-            var iToF = _CreateInlineFunction(LLVM.Int32Type(), LLVM.FloatType(),
-                (alloca, type) => LLVM.BuildSIToFP(_builder, alloca, type, "conv"));
-
-            var fToI = _CreateInlineFunction(LLVM.FloatType(), LLVM.Int32Type(),
-                (alloca, type) => LLVM.BuildFPToSI(_builder, alloca, type, "conv"));
-
             _typeCasts = new List<TypeCast>()
             {
-                new TypeCast(){From = DefaultTypes.Int, To = DefaultTypes.Float, Function = iToF},
-                new TypeCast(){From = DefaultTypes.Float, To = DefaultTypes.Int, Function = fToI}
+                _CreateTypeCast(DefaultTypes.Int, DefaultTypes.Float, (alloca, type) => LLVM.BuildSIToFP(_builder, alloca, type, "conv")),
+                _CreateTypeCast(DefaultTypes.Float, DefaultTypes.Int, (alloca, type) => LLVM.BuildFPToSI(_builder, alloca, type, "conv")),
             };
         }
 
-        private LLVMValueRef _CreateInlineFunction(LLVMTypeRef from, LLVMTypeRef to, Func<LLVMValueRef, LLVMTypeRef, LLVMValueRef> action)
+        private void _SetupDefaultLLVMTypes()
+        {
+            _llvmTypes = new Dictionary<INodeType, LLVMTypeRef>()
+            {
+                [DefaultTypes.Int] = LLVM.Int32Type(),
+                [DefaultTypes.Float] = LLVM.FloatType(),
+                [DefaultTypes.Char] = LLVM.Int8Type(),
+                [DefaultTypes.Bool] = LLVM.Int1Type(),
+            };
+        }
+
+        private TypeCast _CreateTypeCast(INodeType from, INodeType to, Func<LLVMValueRef, LLVMTypeRef, LLVMValueRef> action)
+        {
+            var conversion = _CreateInlineCastFunction(_llvmTypes[from], _llvmTypes[to], action);
+            return new TypeCast() { From = from, To = to, Function = conversion };
+        }
+
+        private LLVMValueRef _CreateInlineCastFunction(LLVMTypeRef from, LLVMTypeRef to, Func<LLVMValueRef, LLVMTypeRef, LLVMValueRef> action)
         {
             var type = LLVM.FunctionType(to, new[] { from }, false);
-            var func = LLVM.AddFunction(_module, "", type);
-            func.SetLinkage(LLVMLinkage.LLVMExternalLinkage);
+            var func = LLVM.AddFunction(_module, $"__cast{from}To{to}__", type);
+            func.SetLinkage(LLVMLinkage.LLVMInternalLinkage);
             var entry = LLVM.AppendBasicBlock(func, "entry");
             LLVM.PositionBuilderAtEnd(_builder, entry);
 
@@ -80,5 +94,10 @@ namespace Compiler.AST.CodeGenVisitor
             if(OPTIMIZE) LLVM.RunFunctionPassManager(_functionPassManager, func);
             return func;
         }
+
+        private LLVMTypeRef _GetLLVMType(INodeType type, SourcePos pos)
+            => _llvmTypes.TryGetValue(type, out var llvmType) 
+            ? llvmType 
+            : throw new CodeGenException($"Use of unknown type '{type}'. Did you forget to declare the type?", pos);
     }
 }

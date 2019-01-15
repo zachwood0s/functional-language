@@ -11,7 +11,7 @@ namespace Compiler.AST.Nodes
     {
         private double _value;
         public double Value => _value;
-        public VariableType Type => DefaultTypes.Float;
+        public new VariableType Type => DefaultTypes.Float;
 
         public ConstantDoubleNode(double value)
         {
@@ -28,7 +28,7 @@ namespace Compiler.AST.Nodes
     {
         private int _value;
         public int Value => _value;
-        public VariableType Type => DefaultTypes.Int;
+        public new VariableType Type => DefaultTypes.Int;
 
         public ConstantIntegerNode(int value)
         {

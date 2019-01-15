@@ -21,6 +21,12 @@ namespace Compiler.AST.Types
             ? n.TypeName == _typeName 
             : false;
 
+        public override int GetHashCode()
+            => ToString().GetHashCode();
+
+        public override bool Equals(object obj)
+            => obj is VariableType n ? IsMatch(n) : false;
+
         public override string ToString() => _typeName;
     }
 

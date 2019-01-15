@@ -25,6 +25,12 @@ namespace Compiler.AST.Types
             ? _parameterTypes.SequenceEqual(f.ParameterTypes) && _returnType == f.ReturnType
             : false;
 
+        public override bool Equals(object obj)
+            => obj is FunctionType f ? IsMatch(f) : false;
+
+        public override int GetHashCode()
+            => ToString().GetHashCode();
+
         public override string ToString() => $"{string.Join(", ", _parameterTypes)} -> {_returnType}";
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Compiler.AST.Nodes;
@@ -33,7 +35,9 @@ namespace Compiler.AST.CodeGenVisitor
             _modulePassManager = LLVM.CreatePassManager();
 
             _SetupPasses();
+            _SetupDefaultLLVMTypes();
             _SetupDefaultCasts();
+            _CreateDefaultOperators();
         }
 
         private void _SetupPasses()
@@ -52,177 +56,70 @@ namespace Compiler.AST.CodeGenVisitor
 
         public void PrintIR()
         {
+            LLVM.VerifyModule(_module, LLVMVerifierFailureAction.LLVMPrintMessageAction, out var _);
             if(OPTIMIZE) LLVM.RunPassManager(_modulePassManager, _module);
             LLVM.DumpModule(_module);
+        }
+
+        public void WriteIRToFile(string fileName)
+        {
+            var triple = LLVM.GetDefaultTargetTriple();
+            var targetTriple = Marshal.PtrToStringAnsi(LLVM.GetDefaultTargetTriple());
             
+            LLVM.InitializeX86TargetInfo();
+            LLVM.InitializeX86Target();
+            LLVM.InitializeX86TargetMC();
+            LLVM.InitializeX86AsmParser();
+            LLVM.InitializeX86AsmPrinter();
+
+            if(LLVM.GetTargetFromTriple(targetTriple, out var target, out var error))
+            {
+                Console.WriteLine($"Object file error: {error}");
+            }
+            else
+            {
+                var CPU = "generic";
+                var features = "";
+                var targetMachine = LLVM.CreateTargetMachine(
+                    target, 
+                    targetTriple, 
+                    CPU, 
+                    features, 
+                    LLVMCodeGenOptLevel.LLVMCodeGenLevelDefault, 
+                    LLVMRelocMode.LLVMRelocDefault, 
+                    LLVMCodeModel.LLVMCodeModelDefault);
+
+                var stringPtr = Marshal.StringToHGlobalAuto("output.obj");
+                if (LLVM.TargetMachineEmitToFile(targetMachine, _module, stringPtr, LLVMCodeGenFileType.LLVMObjectFile, out var innererror))
+                {
+                    Console.WriteLine($"Object file error: {innererror}");
+                }
+                else
+                {
+                    Console.WriteLine("success");
+                }
+
+            }
+            //LLVM.WriteBitcodeToFile(_module, fileName);
         }
 
         public void Visit(ASTNode node)
         {
         }
 
-        public void Visit(BinaryOperatorNode node)
-        {
-            node.Left.Accept(this);
-            node.Right.Accept(this);
-
-            var right = _valueStack.Pop();
-            var left = _valueStack.Pop();
-
-            LLVMValueRef res;
-            switch (node.Operator)
-            {
-                case BinaryOperatorOpCode.Addition: 
-                    res = LLVM.BuildFAdd(_builder, left, right, "addtmp");
-                    break;
-                case BinaryOperatorOpCode.Subtraction:
-                    res = LLVM.BuildFSub(_builder, left, right, "subtmp");
-                    break;
-                case BinaryOperatorOpCode.Multiplication:
-                    res = LLVM.BuildFMul(_builder, left, right, "multmp");
-                    break;
-                case BinaryOperatorOpCode.LessThan:
-                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealULT, left, right, "cmptmp");
-                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
-                    break;
-                case BinaryOperatorOpCode.LessThanEq:
-                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealULE, left, right, "cmptmp");
-                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
-                    break;
-                case BinaryOperatorOpCode.GreaterThan:
-                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUGT, left, right, "cmptmp");
-                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
-                    break;
-                case BinaryOperatorOpCode.GreaterThanEq:
-                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUGE, left, right, "cmptmp");
-                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
-                    break;
-                case BinaryOperatorOpCode.Equality:
-                    left = LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUEQ, left, right, "cmptmp");
-                    res = LLVM.BuildUIToFP(_builder, left, LLVM.DoubleType(), "booltmp");
-                    break;
-
-                default:
-                    //Handle predefined operator
-                    var function = LLVM.GetNamedFunction(_module, $"binary{node.Operator}");
-                    var ops = new[] { left, right };
-                    res = LLVM.BuildCall(_builder, function, ops, "binop");
-                    break;
-            }
-            _valueStack.Push(res);
-        }
-
         public void Visit(ConstantDoubleNode node)
         {
-            _valueStack.Push(LLVM.ConstReal(LLVM.DoubleType(), node.Value));
+            _valueStack.Push(LLVM.ConstReal(_GetLLVMType(node.Type, new Pidgin.SourcePos()), node.Value));
         }
 
         public void Visit(ConstantIntegerNode node)
         {
-            _valueStack.Push(LLVM.ConstReal(LLVM.Int32Type(), node.Value));
+            _valueStack.Push(LLVM.ConstInt(_GetLLVMType(node.Type, new Pidgin.SourcePos()), (ulong) node.Value, true));
         }
 
         public void Visit(UnaryOperatorNode node)
         {
             throw new NotImplementedException();
-        }
-
-        public void Visit(FunctionCallNode node)
-        {
-            var callee = LLVM.GetNamedFunction(_module, (node.Callee as IdentifierNode).Name);
-            if(callee.Pointer == IntPtr.Zero)
-            {
-                throw new Exception("Unknown function referenced");
-            }
-
-            if(LLVM.CountParams(callee) != node.Args.Count)
-            {
-                throw new Exception("Incorrect # arguments passed");
-            }
-
-            var argCount = (uint) node.Args.Count;
-            var argsV = new LLVMValueRef[argCount];
-
-            for(int i = 0; i<argCount; i++)
-            {
-                node.Args[i].Accept(this);
-                argsV[i] = _valueStack.Pop();
-            }
-
-            _valueStack.Push(LLVM.BuildCall(_builder, callee, argsV, "calltmp"));
-        }
-
-        public void Visit(FunctionNode node)
-        {
-            _namedValues.Clear();
-            node.Prototype.Accept(this);
-            var function = _valueStack.Pop();
-
-            var entry = LLVM.AppendBasicBlock(function, "entry");
-            LLVM.PositionBuilderAtEnd(_builder, entry);
-
-            for(int i = 0; i<node.Args.Count; i++)
-            {
-                var argName = node.Args[i];
-
-                var param = LLVM.GetParam(function, (uint)i);
-                LLVM.SetValueName(param, argName);
-
-                var alloca = _CreateEntryBlockAlloca(function, argName, LLVM.DoubleType());
-                LLVM.BuildStore(_builder, param, alloca); 
-
-                _namedValues[argName] = alloca;
-            }
-
-            try
-            {
-                node.Body.Accept(this);
-            }
-            catch (Exception)
-            {
-                LLVM.DeleteFunction(function);
-                throw;
-            }
-            LLVM.BuildRet(_builder, _valueStack.Pop());
-            LLVM.VerifyFunction(function, LLVMVerifierFailureAction.LLVMPrintMessageAction);
-            if(OPTIMIZE) LLVM.RunFunctionPassManager(_functionPassManager, function);
-            _valueStack.Push(function);
-        }
-
-        public void Visit(PrototypeNode node)
-        {
-            var argCount = (uint)node.Type.ParameterTypes.Count;
-            var arguments = new LLVMTypeRef[argCount];
-
-            var function = LLVM.GetNamedFunction(_module, node.Name);
-
-
-            if(function.Pointer != IntPtr.Zero)
-            {
-                if(LLVM.CountBasicBlocks(function) != 0)
-                {
-                    throw new Exception("redefinition of function.");
-                }
-                if(LLVM.CountParams(function) != argCount)
-                {
-                    throw new Exception("redefinition of function with different # args");
-                }
-            }
-            else
-            {
-                for(int i = 0; i<argCount; i++)
-                {
-                    arguments[i] = LLVM.DoubleType();
-                }
-                function = LLVM.AddFunction(
-                    _module,
-                    node.Name,
-                    LLVM.FunctionType(LLVM.DoubleType(), arguments, false));
-                LLVM.SetLinkage(function, LLVMLinkage.LLVMExternalLinkage);
-            }
-
-            _valueStack.Push(function);
-
         }
 
         public void Visit(IdentifierNode node)
@@ -242,11 +139,11 @@ namespace Compiler.AST.CodeGenVisitor
         {
             node.IfCondition.Accept(this);
             var condV = _valueStack.Pop();
-            condV = LLVM.BuildFCmp(
+            condV = LLVM.BuildICmp(
                 _builder,
-                LLVMRealPredicate.LLVMRealONE,
+                LLVMIntPredicate.LLVMIntNE,
                 condV,
-                LLVM.ConstReal(LLVM.DoubleType(), 0.0),
+                LLVM.ConstInt(_llvmTypes[DefaultTypes.Bool], 0, false),
                 "ifcond");
 
             var function = LLVM.GetInsertBlock(_builder).GetBasicBlockParent();
@@ -270,7 +167,8 @@ namespace Compiler.AST.CodeGenVisitor
             elseBB = LLVM.GetInsertBlock(_builder);
 
             LLVM.PositionBuilderAtEnd(_builder, mergeBB);
-            var phiNode = LLVM.BuildPhi(_builder, LLVM.DoubleType(), "iftmp");
+            var ifType = _GetLLVMType(node.Type, new Pidgin.SourcePos());
+            var phiNode = LLVM.BuildPhi(_builder, ifType, "iftmp");
 
             phiNode.AddIncoming(new[] {thenV, elseV}, new[] { thenBB, elseBB }, 2);
             _valueStack.Push(phiNode);
@@ -284,7 +182,8 @@ namespace Compiler.AST.CodeGenVisitor
             {
                 assignment.Expression.Accept(this);
                 var calculated = _valueStack.Pop();
-                var value = LLVM.BuildAlloca(_builder, LLVM.DoubleType(), assignment.Identifier);
+                var llvmType = _GetLLVMType(assignment.Type, new Pidgin.SourcePos());
+                var value = LLVM.BuildAlloca(_builder, llvmType, assignment.Identifier);
                 LLVM.BuildStore(_builder, calculated, value);
                 _namedValues.TryGetValue(assignment.Identifier, out var oldValue);
                 oldBindings.Add(oldValue);

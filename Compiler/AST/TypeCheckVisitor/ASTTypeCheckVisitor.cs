@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Compiler.AST.Nodes;
 using Compiler.AST.Types;
+using static Compiler.PidginParser.OperatorParser;
 
 namespace Compiler.AST.TypeCheckVisitor
 {
@@ -15,7 +16,20 @@ namespace Compiler.AST.TypeCheckVisitor
         private Stack<INodeType> _expectedTypes;
 
         private List<AcceptableTypeCast> _knownCasts;
+        private List<Operator> _knownOperators;
 
+        private class Operator
+        {
+            public INodeType LHS { get; set; }
+            public INodeType RHS { get; set; }
+            public INodeType ReturnType { get; set; }
+            public string Op { get; set; }
+            
+            public override bool Equals(object obj)
+                => obj is Operator a
+                ? Op == a.Op && a.LHS.IsMatch(LHS) && a.RHS.IsMatch(RHS) && a.ReturnType.IsMatch(ReturnType)
+                : false;
+        }
         private class AcceptableTypeCast
         {
             public INodeType From { get; set; }
@@ -25,6 +39,9 @@ namespace Compiler.AST.TypeCheckVisitor
                 => obj is AcceptableTypeCast a
                 ? a.From.IsMatch(From) && a.To.IsMatch(To)
                 : false;
+
+            public override int GetHashCode()
+                => (From.ToString() + To.ToString()).GetHashCode();
         }
 
 
@@ -34,6 +51,35 @@ namespace Compiler.AST.TypeCheckVisitor
             _typeStack = new Stack<INodeType>();
             _expectedTypes = new Stack<INodeType>();
             _SetupKnownCasts();
+            _SetupKnownOperators();
+        }
+
+        private void _SetupKnownOperators()
+        {
+            _knownOperators = new List<Operator>()
+            {
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Addition},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Subtraction},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Multiplication},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Division},
+
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Addition},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Subtraction},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Multiplication},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Division},
+
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThan},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThanEq},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThan},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThanEq},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.Equality},
+
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThan},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThanEq},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThan},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThanEq},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.Equality},
+            };
         }
 
         private void _SetupKnownCasts()
@@ -62,9 +108,12 @@ namespace Compiler.AST.TypeCheckVisitor
             node.Right.Accept(this);
             var rightType = _typeStack.Pop();
 
-            if (!leftType.IsMatch(rightType)) throw new TypeCheckException($"Cannot implicitly convert {rightType} to {leftType}");
+            var foundOp = _knownOperators.Find(x => x.Op == node.Operator && x.LHS.IsMatch(leftType) && x.RHS.IsMatch(rightType));
+            if (foundOp == null) throw new TypeCheckException($"No defined operator '{node.Operator}' for {leftType} and {rightType}");
 
-            _typeStack.Push(leftType);
+            node.Type = leftType;
+            node.ReturnType = foundOp.ReturnType;
+            _typeStack.Push(node.ReturnType);
         }
 
         public void Visit(ConstantDoubleNode node)
@@ -99,6 +148,7 @@ namespace Compiler.AST.TypeCheckVisitor
                     if (!argType.IsMatch(typePair.expected)) throw new TypeCheckException($"Incorrect argument type. Expected {typePair.expected}, got {argType}");
                 }
 
+                node.Type = f.ReturnType;
                 _typeStack.Push(f.ReturnType);
             }
             else
@@ -114,13 +164,18 @@ namespace Compiler.AST.TypeCheckVisitor
 
             if(functionType is FunctionType f)
             {
-                foreach(var arg in node.Prototype.Type.ParameterTypes.Zip(node.Args, (type, name) => (type, name)))
+                var args = node.Prototype.Type.ParameterTypes.Zip(node.Args, (type, name) => (type, name));
+                foreach(var (type, name) in args)
                 {
-                    _types.Add(arg.name, arg.type);   
+                    _types.Add(name, type);   
                 }
                 _expectedTypes.Push(f.ReturnType);
                 node.Body.Accept(this);
                 _expectedTypes.Pop();
+                foreach(var (_, name) in args)
+                {
+                    _types.Remove(name);
+                }
             }
             else
             {
@@ -170,6 +225,8 @@ namespace Compiler.AST.TypeCheckVisitor
             var elseType = _typeStack.Pop();
             if (!elseType.IsMatch(expectedType)) throw new TypeCheckException($"Else branch type is not expected. Expected {expectedType} got {elseType}");
 
+            node.Type = thenType;
+
             _typeStack.Push(expectedType);
         }
 
@@ -189,6 +246,9 @@ namespace Compiler.AST.TypeCheckVisitor
             var bodyType = _typeStack.Pop();
             var expectedType = _expectedTypes.Peek();
             if (!bodyType.IsMatch(expectedType)) throw new TypeCheckException($"In part of let expression does not match expected type {expectedType}. In type: {bodyType}");
+
+            node.Type = bodyType;
+            _typeStack.Push(bodyType);
         }
 
         public void Visit(TypeCastNode node)

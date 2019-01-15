@@ -1,4 +1,5 @@
-﻿using Compiler.Parser;
+﻿using Compiler.AST.Types;
+using Compiler.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace Compiler.AST.Nodes
         public ASTNode Left => _left;
         public ASTNode Right => _right;
         public string Operator => _operator;
+
+        public INodeType ReturnType { get; set; }
 
         public BinaryOperatorNode(ASTNode left, ASTNode right, string op)
         {

@@ -70,6 +70,7 @@ namespace Compiler
                     node.Accept(codegen);
                 }
                 codegen.PrintIR();
+                codegen.WriteIRToFile("./test.ll");
 
             }
             catch(ParseException e)

@@ -197,7 +197,9 @@
   <ItemGroup>
     <Compile Include="AST\AST.cs" />
     <Compile Include="AST\ASTNode.cs" />
+    <Compile Include="AST\CodeGenVisitor\BinaryOperators.cs" />
     <Compile Include="AST\CodeGenVisitor\CodeGenException.cs" />
+    <Compile Include="AST\CodeGenVisitor\Functions.cs" />
     <Compile Include="AST\CodeGenVisitor\TypeCasting.cs" />
     <Compile Include="AST\ConsolePrintVisitor\ASTPrintVisitor.cs" />
     <Compile Include="AST\IASTVisitor.cs" />
@@ -217,6 +219,7 @@
     <Compile Include="AST\TypeCheckVisitor\TypeCheckException.cs" />
     <Compile Include="AST\Types\FunctionType.cs" />
     <Compile Include="AST\Types\INodeType.cs" />
+    <Compile Include="AST\Types\NoneType.cs" />
     <Compile Include="AST\Types\VariableType.cs" />
     <Compile Include="Parser\Basics\Constants.cs" />
     <Compile Include="Parser\Basics\Identifiers.cs" />

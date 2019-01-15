@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Compiler.AST.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,6 @@ namespace Compiler.AST
 
     public abstract class ExprAST: ASTNode
     {
+        public INodeType Type { get; set; }
     }
 }
