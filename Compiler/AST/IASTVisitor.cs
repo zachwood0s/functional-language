@@ -24,22 +24,4 @@ namespace Compiler.AST
         void Visit(LetExpressionNode node);
         void Visit(TypeCastNode node);
     }
-
-
-    public abstract class A
-    {
-        public abstract void Foo();
-    }
-    public interface B
-    {
-        void Foo();
-    }
-
-    public class C : A, B
-    {
-        public void Foo()
-        {
-
-        }
-    }
 }

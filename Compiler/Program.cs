@@ -40,6 +40,9 @@ namespace Compiler
             //   .ParseOrThrow("4 + 5 * alpha == (2 + 2) * 4 + 4 || b < a && a");
             //node.Accept(new ASTPrintVisitor());
             Console.ReadKey();
+
+            IASTVisitor visitor = new ASTPrintVisitor();
+            visitor = new ASTTypeCheckVisitor();
         }
 
         public static void LoadFile(string file)

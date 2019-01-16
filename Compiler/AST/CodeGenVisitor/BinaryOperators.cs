@@ -43,6 +43,8 @@ namespace Compiler.AST.CodeGenVisitor
                 (lhs, rhs) => LLVM.BuildFMul(_builder, lhs, rhs, "multmp"));
             _CreateBinaryOpFunction(DefaultTypes.Float, DefaultTypes.Float, BinaryOperatorOpCode.Division,
                 (lhs, rhs) => LLVM.BuildFDiv(_builder, lhs, rhs, "divtmp"));
+            _CreateBinaryOpFunction(DefaultTypes.Float, DefaultTypes.Float, BinaryOperatorOpCode.Modulo,
+                (lhs, rhs) => LLVM.BuildFRem(_builder, lhs, rhs, "modtmp"));
             _CreateBinaryOpFunction(DefaultTypes.Float, DefaultTypes.Bool, BinaryOperatorOpCode.LessThan,
                 (lhs, rhs) => LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealULT, lhs, rhs, "cmptmp"));
             _CreateBinaryOpFunction(DefaultTypes.Float, DefaultTypes.Bool, BinaryOperatorOpCode.LessThanEq,
@@ -53,6 +55,8 @@ namespace Compiler.AST.CodeGenVisitor
                 (lhs, rhs) => LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUGE, lhs, rhs, "cmptmp"));
             _CreateBinaryOpFunction(DefaultTypes.Float, DefaultTypes.Bool, BinaryOperatorOpCode.Equality,
                 (lhs, rhs) => LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUEQ, lhs, rhs, "cmptmp"));
+            _CreateBinaryOpFunction(DefaultTypes.Float, DefaultTypes.Bool, BinaryOperatorOpCode.NotEquality,
+                (lhs, rhs) => LLVM.BuildFCmp(_builder, LLVMRealPredicate.LLVMRealUNE, lhs, rhs, "cmptmp"));
 
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Int, BinaryOperatorOpCode.Addition,
                 (lhs, rhs) => LLVM.BuildAdd(_builder, lhs, rhs, "addtmp"));
@@ -62,17 +66,24 @@ namespace Compiler.AST.CodeGenVisitor
                 (lhs, rhs) => LLVM.BuildMul(_builder, lhs, rhs, "multmp"));
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Int, BinaryOperatorOpCode.Division,
                 (lhs, rhs) => LLVM.BuildSDiv(_builder, lhs, rhs, "divtmp"));
+            _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Int, BinaryOperatorOpCode.Modulo,
+                (lhs, rhs) => LLVM.BuildSRem(_builder, lhs, rhs, "modtmp"));
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Bool, BinaryOperatorOpCode.LessThan,
-                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntULT, lhs, rhs, "cmptmp"));
+                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntSLT, lhs, rhs, "cmptmp"));
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Bool, BinaryOperatorOpCode.LessThanEq,
-                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntULE, lhs, rhs, "cmptmp"));
+                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntSLE, lhs, rhs, "cmptmp"));
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Bool, BinaryOperatorOpCode.GreaterThan,
-                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntUGT, lhs, rhs, "cmptmp"));
+                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntSGT, lhs, rhs, "cmptmp"));
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Bool, BinaryOperatorOpCode.GreaterThanEq,
-                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntUGE, lhs, rhs, "cmptmp"));
+                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntSGE, lhs, rhs, "cmptmp"));
             _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Bool, BinaryOperatorOpCode.Equality,
                 (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntEQ, lhs, rhs, "cmptmp"));
+            _CreateBinaryOpFunction(DefaultTypes.Int, DefaultTypes.Bool, BinaryOperatorOpCode.NotEquality,
+                (lhs, rhs) => LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntNE, lhs, rhs, "cmptmp"));
         }
+
+        private LLVMValueRef _CreateBoolCast(LLVMValueRef incoming)
+            => incoming;//LLVM.BuildICmp(_builder, LLVMIntPredicate.LLVMIntNE, incoming, LLVM.ConstInt(LLVM.Int32Type(), 0, true), "boolcast");
 
         private delegate LLVMValueRef BinaryAction(LLVMValueRef left, LLVMValueRef right);
         private void _CreateBinaryOpFunction(INodeType paramTypes, INodeType returnType, string op, BinaryAction action)

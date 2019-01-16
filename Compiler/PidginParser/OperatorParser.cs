@@ -26,12 +26,14 @@ namespace Compiler.PidginParser
             new BinaryOperator(BinaryOperatorOpCode.Subtraction, 6, BinaryOperatorType.LeftAssociative),
             new BinaryOperator(BinaryOperatorOpCode.Multiplication, 7, BinaryOperatorType.LeftAssociative),
             new BinaryOperator(BinaryOperatorOpCode.Division, 7, BinaryOperatorType.LeftAssociative),
+            new BinaryOperator(BinaryOperatorOpCode.Modulo, 7, BinaryOperatorType.LeftAssociative),
 
-            new BinaryOperator(BinaryOperatorOpCode.LessThan, 4, BinaryOperatorType.NonAssociative),
             new BinaryOperator(BinaryOperatorOpCode.LessThanEq, 4, BinaryOperatorType.NonAssociative),
-            new BinaryOperator(BinaryOperatorOpCode.GreaterThan, 4, BinaryOperatorType.NonAssociative),
+            new BinaryOperator(BinaryOperatorOpCode.LessThan, 4, BinaryOperatorType.NonAssociative),
             new BinaryOperator(BinaryOperatorOpCode.GreaterThanEq, 4, BinaryOperatorType.NonAssociative),
+            new BinaryOperator(BinaryOperatorOpCode.GreaterThan, 4, BinaryOperatorType.NonAssociative),
             new BinaryOperator(BinaryOperatorOpCode.Equality, 4, BinaryOperatorType.NonAssociative),
+            new BinaryOperator(BinaryOperatorOpCode.NotEquality, 4, BinaryOperatorType.NonAssociative),
 
             new BinaryOperator(BinaryOperatorOpCode.LogicalAnd, 3, BinaryOperatorType.RightAssociative),
             new BinaryOperator(BinaryOperatorOpCode.LogicalOr, 2, BinaryOperatorType.RightAssociative),
@@ -58,6 +60,7 @@ namespace Compiler.PidginParser
             public const string GreaterThan = ">";
             public const string GreaterThanEq = ">=";
             public const string Equality = "==";
+            public const string NotEquality = "!=";
 
             public const string LogicalAnd = "&&";
             public const string LogicalOr = "||";

@@ -54,6 +54,8 @@ namespace Compiler.AST.CodeGenVisitor
             {
                 _CreateTypeCast(DefaultTypes.Int, DefaultTypes.Float, (alloca, type) => LLVM.BuildSIToFP(_builder, alloca, type, "conv")),
                 _CreateTypeCast(DefaultTypes.Float, DefaultTypes.Int, (alloca, type) => LLVM.BuildFPToSI(_builder, alloca, type, "conv")),
+                _CreateTypeCast(DefaultTypes.Char, DefaultTypes.Int, (alloca, type) => LLVM.BuildIntCast(_builder, alloca, type, "conv")),
+                _CreateTypeCast(DefaultTypes.Int, DefaultTypes.Char, (alloca, type) => LLVM.BuildIntCast(_builder, alloca, type, "conv")),
             };
         }
 

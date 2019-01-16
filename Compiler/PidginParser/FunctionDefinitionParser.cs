@@ -20,7 +20,7 @@ namespace Compiler.PidginParser
                 FunctionaDeclarationParser.FunctionDeclaration,
                 IdentifierParser.LowerIdentifier//.Labelled("function identifier1")
                     .Then(Utils.Parenthesised(
-                        IdentifierParser.LowerIdentifier.Separated(Utils.Token(","))))//.Labelled("parameter list"))
+                        Try(IdentifierParser.LowerIdentifier).Separated(Utils.Token(","))))//.Labelled("parameter list"))
                     .Then(x => Utils.Token("=").WithResult(x)),
                 ExpressionParser.Expression);//.Labelled("function body"))
             //.Labelled("function definition");

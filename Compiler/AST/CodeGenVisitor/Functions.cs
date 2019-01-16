@@ -115,7 +115,7 @@ namespace Compiler.AST.CodeGenVisitor
         {
             var type = LLVM.FunctionType(LLVM.Int32Type(), new[] { LLVM.Int32Type() }, false);
             var putChar = LLVM.AddFunction(_module, "putchar", type);
-            putChar.SetLinkage(LLVMLinkage.LLVMInternalLinkage);
+            putChar.SetLinkage(LLVMLinkage.LLVMExternalLinkage);
             var param = new List<(INodeType type, string name)>()
             {
                 (DefaultTypes.Char, "in")
@@ -144,7 +144,7 @@ namespace Compiler.AST.CodeGenVisitor
             var llvmParamTypes = paramTypes.Select(x => _llvmTypes[x.type]).ToArray();
             var type = LLVM.FunctionType(llvmReturnType, llvmParamTypes, isVarArg);
             var func = LLVM.AddFunction(_module, name, type);
-            func.SetLinkage(LLVMLinkage.LLVMInternalLinkage);
+            func.SetLinkage(LLVMLinkage.LLVMExternalLinkage);
 
             var entry = LLVM.AppendBasicBlock(func, "entry");
             LLVM.PositionBuilderAtEnd(_builder, entry);

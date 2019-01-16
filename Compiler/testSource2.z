@@ -1,14 +1,78 @@
 ﻿
-main: Int -> Int
-main() = 
-	let
-		a : Char; 
-		a = '\'';
-		b : Int;
-		b = printChar(a);
-		c : Int;
-		c = (5.0 :: Int) * 2;
-		d : Float;
-		d = 10.6 * (c :: Float);
-	in d :: Int
+
+printUInt: Int -> Int
+printUInt(n) =
+	let 
+		frac : Int;
+		frac = n / 10;
+		res : Int;
+		res = if frac != 0 then printUInt(frac) else 0;
+	in 
+		printChar(((n % 10) + ('0' :: Int)) :: Char)
+
+printInt: Int -> Int
+printInt(n) =
+	let 
+		nNew : Int;
+		nNew = 
+			if n < 0 then let
+					res : Int;
+					res = printChar('-');
+				in 0 - n
+			else n
+	in printUInt(nNew)
+
+isPositiveI : Int -> Int
+isPositiveI(n) =
+	if n > 0 then printChar('+')
+	else printChar('-')
 	
+printFirstN: Int -> Int
+printFirstN(n) =
+	if n < 0 then printChar('e')
+	else let
+		a : Int;
+		a = printInt(n);
+		b : Int;
+		b = printChar('\n');
+	in printFirstN(n - 1)
+
+factorial: Int -> Int
+factorial(n) =
+	if n == 0 then 1
+	else n * factorial(n - 1)
+
+abs : Int -> Int
+abs(n) =
+	if n < 0 then 0 - n
+	else n
+
+fabs : Float -> Float
+fabs(n) =
+	if n < 0.0 then 0.0 - n
+	else n
+
+printFloat: Float -> Int
+printFloat(n) =
+	let 
+		front : Int;
+		front = n :: Int;
+		p1 : Int;
+		p1 = printInt(front);
+		n1 : Float;
+		n1 = (n - (front :: Float)) * 10000.0;
+		front1 : Int;
+		front1 = abs(n1 :: Int);
+		front2 : Int;
+		front2 = if fabs(n1) - (front1 :: Float) >= 0.5 then front1 + 1
+						 else front1;
+		p2 : Int;
+		p2 = printChar('.');
+		p3 : Int;
+		p3 = printInt(front2)
+	in
+		printChar('\n')
+		
+
+main: Int -> Int
+main() = printFloat(0.0 - 502949.43343)

@@ -13,13 +13,13 @@ namespace Compiler.PidginParser
     public static class CommentParser
     {
         public static readonly Parser<char, Unit> LineComment =
-            Pidgin.Comment.CommentParser.SkipLineComment(String("//"));
+            Pidgin.Comment.CommentParser.SkipLineComment(Try(String("//")));
 
         public static readonly Parser<char, Unit> BlockComment =
-            Pidgin.Comment.CommentParser.SkipNestedBlockComment(String("/*"), Try(String("*/")));
+            Pidgin.Comment.CommentParser.SkipNestedBlockComment(Try(String("/*")), Try(String("*/")));
 
         public static readonly Parser<char, Unit> Comments =
-            Try(LineComment.SkipMany()).Or(BlockComment.SkipMany());
+            LineComment.SkipMany().Or(BlockComment.SkipMany());
 
     }
 }

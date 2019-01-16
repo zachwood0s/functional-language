@@ -68,23 +68,27 @@ namespace Compiler.AST.TypeCheckVisitor
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Subtraction},
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Multiplication},
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Division},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Float, Op = BinaryOperatorOpCode.Modulo},
 
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Addition},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Subtraction},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Multiplication},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Division},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Int, Op = BinaryOperatorOpCode.Modulo},
 
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThan},
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThanEq},
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThan},
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThanEq},
                 new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.Equality},
+                new Operator(){LHS = DefaultTypes.Float, RHS = DefaultTypes.Float, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.NotEquality},
 
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThan},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.LessThanEq},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThan},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.GreaterThanEq},
                 new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.Equality},
+                new Operator(){LHS = DefaultTypes.Int, RHS = DefaultTypes.Int, ReturnType = DefaultTypes.Bool, Op = BinaryOperatorOpCode.NotEquality},
             };
         }
 
@@ -260,6 +264,11 @@ namespace Compiler.AST.TypeCheckVisitor
 
             node.Type = bodyType;
             _typeStack.Push(bodyType);
+
+            foreach(var assignment in node.Assignments)
+            {
+                _types.Remove(assignment.Identifier);
+            }
         }
 
         public void Visit(TypeCastNode node)
