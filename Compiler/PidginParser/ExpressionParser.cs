@@ -12,6 +12,7 @@ using Pidgin.Expression;
 using static Pidgin.Parser;
 using static Pidgin.Parser<char>;
 using Compiler.AST.Types;
+using System.Text.RegularExpressions;
 
 namespace Compiler.PidginParser.Expressions
 {
@@ -33,6 +34,13 @@ namespace Compiler.PidginParser.Expressions
             = Utils.Token(Utils.UnsignedReal())
             .Select<ExprAST>(value => new ConstantDoubleNode(value))
             .Labelled("float literal");
+
+        private static readonly Parser<char, char> _charContent
+            = Try(AnyCharExcept('\'', '\\')).Or(Char('\\').Then(Any, (escape, following) => Regex.Unescape(@"\" + following)[0]));
+
+        private static readonly Parser<char, ExprAST> _literalChar
+            = Utils.Token(_charContent.Between(Char('\''))
+                .Select<ExprAST>(x => new ConstantCharNode(x)));
 
         private static readonly Parser<char, ExprAST> _ifExpression
             = Map(
@@ -72,12 +80,11 @@ namespace Compiler.PidginParser.Expressions
         private static Parser<char, ExprAST> _BuildExpressionParser()
         {
             Parser<char, ExprAST> expr = null;
-
             var term = OneOf(
                 _letExpression.Labelled("let expression"),
                 _ifExpression.Labelled("if expression"),
                 _identifier,
-                Try(_literalFloat).Or(_literal),
+                Try(_literalFloat).Or(Try(_literal)).Or(Try(_literalChar)),
                 _Parenthesised(Rec(() => expr)).Labelled("parenthesised expression")
                 );
 

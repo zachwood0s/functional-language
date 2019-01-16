@@ -52,6 +52,12 @@ namespace Compiler.AST.TypeCheckVisitor
             _expectedTypes = new Stack<INodeType>();
             _SetupKnownCasts();
             _SetupKnownOperators();
+            _SetupBuiltInFunctions();
+        }
+
+        private void _SetupBuiltInFunctions()
+        {
+            _types.Add("printChar", new FunctionType(new List<INodeType>() { DefaultTypes.Char }, DefaultTypes.Int));
         }
 
         private void _SetupKnownOperators()
@@ -122,6 +128,11 @@ namespace Compiler.AST.TypeCheckVisitor
         }
 
         public void Visit(ConstantIntegerNode node)
+        {
+            _typeStack.Push(node.Type);
+        }
+
+        public void Visit(ConstantCharNode node)
         {
             _typeStack.Push(node.Type);
         }
@@ -240,7 +251,7 @@ namespace Compiler.AST.TypeCheckVisitor
                 _expectedTypes.Pop();
                 var exprType = _typeStack.Pop();
 
-                if (!assignment.Type.IsMatch(exprType)) throw new TypeCheckException($"Assignment type of {assignment.Identifier} does not match type definition");
+                if (!assignment.Type.IsMatch(exprType)) throw new TypeCheckException($"Assignment type of {assignment.Identifier} does not match type definition. Expected {assignment.Type}, got {exprType}");
             }
             node.InExpression.Accept(this);
             var bodyType = _typeStack.Pop();

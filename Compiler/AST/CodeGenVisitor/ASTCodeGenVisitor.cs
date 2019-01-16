@@ -38,6 +38,7 @@ namespace Compiler.AST.CodeGenVisitor
             _SetupDefaultLLVMTypes();
             _SetupDefaultCasts();
             _CreateDefaultOperators();
+            _CreateBuiltInFunctions();
         }
 
         private void _SetupPasses()
@@ -64,7 +65,7 @@ namespace Compiler.AST.CodeGenVisitor
         public void WriteIRToFile(string fileName)
         {
             var triple = LLVM.GetDefaultTargetTriple();
-            var targetTriple = Marshal.PtrToStringAnsi(LLVM.GetDefaultTargetTriple());
+            var targetTriple = Marshal.PtrToStringAnsi(triple);
             
             LLVM.InitializeX86TargetInfo();
             LLVM.InitializeX86Target();
@@ -89,6 +90,10 @@ namespace Compiler.AST.CodeGenVisitor
                     LLVMRelocMode.LLVMRelocDefault, 
                     LLVMCodeModel.LLVMCodeModelDefault);
 
+
+                var layout = LLVM.CreateTargetDataLayout(targetMachine);
+                LLVM.SetModuleDataLayout(_module, layout);
+                LLVM.SetTarget(_module, targetTriple);
                 var stringPtr = Marshal.StringToHGlobalAuto("output.obj");
                 if (LLVM.TargetMachineEmitToFile(targetMachine, _module, stringPtr, LLVMCodeGenFileType.LLVMObjectFile, out var innererror))
                 {
@@ -100,7 +105,8 @@ namespace Compiler.AST.CodeGenVisitor
                 }
 
             }
-            //LLVM.WriteBitcodeToFile(_module, fileName);
+            LLVM.PrintModuleToFile(_module, fileName, out var msg);
+            Console.WriteLine(msg);
         }
 
         public void Visit(ASTNode node)
@@ -115,6 +121,11 @@ namespace Compiler.AST.CodeGenVisitor
         public void Visit(ConstantIntegerNode node)
         {
             _valueStack.Push(LLVM.ConstInt(_GetLLVMType(node.Type, new Pidgin.SourcePos()), (ulong) node.Value, true));
+        }
+
+        public void Visit(ConstantCharNode node)
+        {
+            _valueStack.Push(LLVM.ConstInt(_GetLLVMType(node.Type, new Pidgin.SourcePos()), node.Value, true));
         }
 
         public void Visit(UnaryOperatorNode node)

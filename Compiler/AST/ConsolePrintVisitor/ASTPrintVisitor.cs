@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Compiler.AST.Nodes;
 
@@ -41,6 +42,14 @@ namespace Compiler.AST.ConsolePrintVisitor
             _DoPrint(() => 
             {
                 Console.WriteLine(node.Value);
+            });
+        }
+
+        public void Visit(ConstantCharNode node)
+        {
+            _DoPrint(() => 
+            {
+                Console.WriteLine($"'{Regex.Escape(node.Value.ToString())}'");
             });
         }
 

@@ -1,23 +1,14 @@
-﻿/*test: Int -> Int
-test(n) =
-	let x = n * n + 5 - 3
-	in x - x + 5
-*/
+﻿
 main: Int -> Int
-main() = 9
-
-test: Float -> Int //Int-> Int
-test(n) = 
-	let // x = n*n;
-		y: Float;
-		y = (n * 2.0)::Float;
-		z: Int;
-		z = (y::Int) * (3.5 :: Int);
-		/*v = z;
-		/*k = z;*/
-		j = z;
-		*/
-	in
-		if z > 10 then 20
-		else 34
+main() = 
+	let
+		a : Char; 
+		a = '\'';
+		b : Int;
+		b = printChar(a);
+		c : Int;
+		c = (5.0 :: Int) * 2;
+		d : Float;
+		d = 10.6 * (c :: Float);
+	in d :: Int
 	

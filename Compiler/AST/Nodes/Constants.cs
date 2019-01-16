@@ -40,4 +40,21 @@ namespace Compiler.AST.Nodes
             visitor.Visit(this);
         }
     }
+
+    public class ConstantCharNode : ExprAST
+    {
+        private char _value;
+        public char Value => _value;
+        public new VariableType Type => DefaultTypes.Char;
+
+        public ConstantCharNode(char value)
+        {
+            _value = value;
+        }
+
+        public override void Accept(IASTVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
 }

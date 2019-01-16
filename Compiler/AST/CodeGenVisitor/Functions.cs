@@ -110,5 +110,63 @@ namespace Compiler.AST.CodeGenVisitor
 
             _valueStack.Push(function);
         }
+
+        private void _CreateBuiltInFunctions()
+        {
+            var type = LLVM.FunctionType(LLVM.Int32Type(), new[] { LLVM.Int32Type() }, false);
+            var putChar = LLVM.AddFunction(_module, "putchar", type);
+            putChar.SetLinkage(LLVMLinkage.LLVMInternalLinkage);
+            var param = new List<(INodeType type, string name)>()
+            {
+                (DefaultTypes.Char, "in")
+            };
+            _CreateFunction(
+                param,            
+                DefaultTypes.Int,
+                "printChar",
+                false,
+                vals =>
+                {
+                    var val = LLVM.BuildIntCast(_builder, vals[0], LLVM.Int32Type(), "charcast");
+                    return LLVM.BuildCall(_builder, putChar, new[] { val }, "printCall");
+                }
+            );
+        }
+
+        private LLVMValueRef _CreateFunction(
+            List<(INodeType type, string name)> paramTypes, 
+            INodeType returnType, 
+            string name, 
+            bool isVarArg, 
+            Func<List<LLVMValueRef>, LLVMValueRef> action)
+        {
+            var llvmReturnType = _llvmTypes[returnType];
+            var llvmParamTypes = paramTypes.Select(x => _llvmTypes[x.type]).ToArray();
+            var type = LLVM.FunctionType(llvmReturnType, llvmParamTypes, isVarArg);
+            var func = LLVM.AddFunction(_module, name, type);
+            func.SetLinkage(LLVMLinkage.LLVMInternalLinkage);
+
+            var entry = LLVM.AppendBasicBlock(func, "entry");
+            LLVM.PositionBuilderAtEnd(_builder, entry);
+
+            var vals = new List<LLVMValueRef>();
+            for(int i = 0; i<paramTypes.Count; i++)
+            {
+                var paramName = paramTypes[i].name;
+                var val = LLVM.GetParam(func, (uint)i);
+                LLVM.SetValueName(val, paramName);
+
+                var alloca = _CreateEntryBlockAlloca(func, paramName, llvmParamTypes[i]);
+                LLVM.BuildStore(_builder, val, alloca);
+                var loaded = LLVM.BuildLoad(_builder, alloca, paramName);
+                vals.Add(loaded);
+            }
+
+            LLVM.BuildRet(_builder, action(vals));
+            LLVM.VerifyFunction(func, LLVMVerifierFailureAction.LLVMPrintMessageAction);
+            if (OPTIMIZE) LLVM.RunFunctionPassManager(_functionPassManager, func);
+
+            return func;
+        }
     }
 }

@@ -20,6 +20,8 @@ namespace Compiler.AST.Types
             _returnType = returnType;
         }
 
+        public FunctionType(INodeType returnType) : this(new List<INodeType>(), returnType) { }
+
         public bool IsMatch(INodeType node)
             => (node is FunctionType f)
             ? _parameterTypes.SequenceEqual(f.ParameterTypes) && _returnType == f.ReturnType

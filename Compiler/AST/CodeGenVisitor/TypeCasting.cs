@@ -63,7 +63,7 @@ namespace Compiler.AST.CodeGenVisitor
             {
                 [DefaultTypes.Int] = LLVM.Int32Type(),
                 [DefaultTypes.Float] = LLVM.FloatType(),
-                [DefaultTypes.Char] = LLVM.Int8Type(),
+                [DefaultTypes.Char] = LLVM.Int16Type(),
                 [DefaultTypes.Bool] = LLVM.Int1Type(),
             };
         }

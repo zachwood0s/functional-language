@@ -13,6 +13,7 @@ namespace Compiler.AST
         void Visit(BinaryOperatorNode node);
         void Visit(ConstantDoubleNode node);
         void Visit(ConstantIntegerNode node);
+        void Visit(ConstantCharNode node);
         void Visit(UnaryOperatorNode node);
         void Visit(FunctionCallNode node);
         void Visit(FunctionNode node);
@@ -22,5 +23,23 @@ namespace Compiler.AST
         void Visit(IfExpressionNode node);
         void Visit(LetExpressionNode node);
         void Visit(TypeCastNode node);
+    }
+
+
+    public abstract class A
+    {
+        public abstract void Foo();
+    }
+    public interface B
+    {
+        void Foo();
+    }
+
+    public class C : A, B
+    {
+        public void Foo()
+        {
+
+        }
     }
 }
