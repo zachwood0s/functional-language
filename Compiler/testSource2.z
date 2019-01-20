@@ -75,4 +75,4 @@ printFloat(n) =
 		
 
 main: Int -> Int
-main() = printFloat(0.0 - 502949.43343)
+main() = printInt(factorial(12))
