@@ -9,15 +9,18 @@ namespace ZAntlr.AST.Nodes
 {
     public class LetExpressionNode : ExprAST
     {
-        private List<LetAssignment> _assignments;
+        private List<AssignmentNode> _assignments;
+        private List<ASTNode> _declarations;
         private ExprAST _inExpression;
 
-        public IReadOnlyList<LetAssignment> Assignments => _assignments;
+        public IReadOnlyList<AssignmentNode> Assignments => _assignments;
+        public IReadOnlyList<ASTNode> Declarations => _declarations;
         public ExprAST InExpression => _inExpression;
 
-        public LetExpressionNode(List<LetAssignment> assignments, ExprAST expression)
+        public LetExpressionNode(List<AssignmentNode> assignments, List<ASTNode> declarations, ExprAST expression)
         {
             _assignments = assignments;
+            _declarations = declarations;
             _inExpression = expression;
         }
 
@@ -25,12 +28,5 @@ namespace ZAntlr.AST.Nodes
         {
             visitor.Visit(this);
         }
-    }
-
-    public struct LetAssignment
-    {
-        public string Identifier { get; set; }
-        public INodeType Type { get; set; }
-        public ExprAST Expression { get; set; }
     }
 }

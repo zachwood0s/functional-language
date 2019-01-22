@@ -2,7 +2,7 @@ parser grammar ZParser;
 
 options {tokenVocab = ZLexer;}
 
-program : (typeDeclaration|definition)*;
+program : (typeDeclaration|definition)* EOF;
 
 definition 
   : functionDefinition | globalDefinition
@@ -36,11 +36,11 @@ parameterList
 
 expression 
   : expression functionCall                             #functionCallExpr
-  | unary                                               #unaryExpr
+  | op = MINUS expression                               #unaryExpr
   | expression op = (TIMES | DIVIDE | MOD) expression   #opExpr
   | expression op = (PLUS | MINUS) expression           #opExpr
-  | expression op = typeCast                            #typeCastExpr
-  | expression op = comparison expression               #opExpr
+  | expression DOUBLE_COLON identifierType              #typeCastExpr
+  | expression op = (LT | LTE | GT | GTE | EQ | NEQ) expression               #opExpr
   | expression op = LOGICAL_AND expression              #opExpr
   | expression op = LOGICAL_OR expression               #opExpr
   | ifExpression                                        #ifExpr
@@ -51,18 +51,6 @@ expression
   | LPAREN expression RPAREN                            #parenExpr
   ;
 
-unary
-  : MINUS expression
-  ;
-
-typeCast
-  : DOUBLE_COLON identifierType
-  ;
-
-comparison
-  : (LT | LTE | GT | GTE | EQ | NEQ)
-  ;
-
 ifExpression
   : IF expression THEN expression ELSE expression
   ;
@@ -71,21 +59,25 @@ functionCall
   : LPAREN usageParameterList? RPAREN
   ;
 
-usageParameterList
-  : identifier (COMMA identifier)*
+usageParameterList 
+  : list += expression (COMMA list += expression)*
   ;
 
 
 // Let expression
 
 letExpression
-  : LET assignmentList IN expression
+  : LET letList IN expression
   ;
 
-assignmentList
-  : (assignment | typeDeclaration) 
-    (assignmentListSeparator? (assignment | typeDeclaration))* 
+letList
+  : list += letItem 
+    (assignmentListSeparator? list += letItem)* 
     assignmentListSeparator?
+  ;
+
+letItem 
+  : assignment | typeDeclaration
   ;
 
 assignmentListSeparator
@@ -104,8 +96,8 @@ literalFloat
   : INT DOT INT
   ;
 
-identifier 
-  : LOWERCASE_ID
+identifier
+  : LOWERCASE_ID 
   ;
 
 // TYPES

@@ -52,6 +52,7 @@
     <Compile Include="AST\AST.cs" />
     <Compile Include="AST\ASTNode.cs" />
     <Compile Include="AST\IASTVisitor.cs" />
+    <Compile Include="AST\Nodes\AssignmentNode.cs" />
     <Compile Include="AST\Nodes\BinaryOperatorNode.cs" />
     <Compile Include="AST\Nodes\Constants.cs" />
     <Compile Include="AST\Nodes\FunctionCallNode.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Visitors\ASTGeneratorVisitor.cs" />
+    <Compile Include="Visitors\ASTPrintVisitor.cs" />
     <Compile Include="ZLexer.g4.cs">
       <DependentUpon>ZLexer.g4</DependentUpon>
     </Compile>
@@ -94,6 +96,11 @@
       <Visitor>False</Visitor>
       <Listener>False</Listener>
     </Antlr4>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

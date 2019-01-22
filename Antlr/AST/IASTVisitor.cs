@@ -10,6 +10,7 @@ namespace ZAntlr.AST
     public interface IASTVisitor
     {
         void Visit(ASTNode node);
+        void Visit(ProgramNode node);
         void Visit(BinaryOperatorNode node);
         void Visit(ConstantDoubleNode node);
         void Visit(ConstantIntegerNode node);

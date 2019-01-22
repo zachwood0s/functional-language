@@ -1,21 +1,4 @@
-testFunc : Int -> ()
-testFunc(a) = 
-  if a == 10 + 5 || a != 5 && a >= 10 
-  then -(5* 20)
-  else 
-    let 
-      j : Int -> Int
-      k : Float
-      j = 199.0
-      k = 100 + 30 * 5 :: Float + 5
-      y = if j <= 10 then 0
-          else do
-    in y
 
-fakeFunc : () -> Int
-fakeFunc() = doFunc(a, b) + do()
+fakeFunc() = doFunc(a, b) + do()(if a > 10 then 0 else 1)
 
-a : Int
-a = if fakeFunc() then 10
-    else 100
 

@@ -50,14 +50,16 @@ namespace ZAntlr.Visitors
             var pars = context.parameterList();
             var body = context.functionBody();
 
-            if (ident == null || pars == null || body == null) return null;
+            if (ident == null || body == null) return null;
             var visitedIdent = Visit(ident) as IdentifierNode;
-            var visitedPars = pars.identifier()?.Select(Visit);
+
+            var visitedPars = pars?.identifier()?.Select(Visit);
+            var parNames = visitedPars?.Select(x => x is IdentifierNode i ? i.Name : "").ToList() ?? new List<string>();
+
             var name = visitedIdent.Name;
-            var parNames = visitedPars.Select(x => x is IdentifierNode i ? i.Name : "");
             var visitedBody = Visit(body) as ExprAST;
 
-            return new FunctionNode(name, parNames.ToList(), visitedBody);
+            return new FunctionNode(name, parNames, visitedBody);
         }
 
         public override ASTNode VisitFunctionTypeDeclaration([NotNull] ZParser.FunctionTypeDeclarationContext context)
@@ -109,5 +111,97 @@ namespace ZAntlr.Visitors
             return new NoneType();
         }
 
+        public override ASTNode VisitOpExpr([NotNull] ZParser.OpExprContext context)
+        {
+            var left = context.expression(0);
+            var right = context.expression(1);
+            var op = context.op;
+
+            if (left == null || right == null || op == null) return null;
+
+            var visitedLeft = Visit(left);
+            var visitedRight = Visit(right);
+
+            return new BinaryOperatorNode(visitedLeft, visitedRight, op.Text);
+        }
+
+        public override ASTNode VisitTypeCastExpr([NotNull] ZParser.TypeCastExprContext context)
+        {
+            var expr = context.expression();
+            var type = context.identifierType();
+
+            if (expr == null || type == null) return null;
+
+            var visitedExpr = Visit(expr) as ExprAST;
+            var visitedType = Visit(type) as INodeType;
+
+            return new TypeCastNode(visitedType, visitedExpr);
+        }
+
+        public override ASTNode VisitUnaryExpr([NotNull] ZParser.UnaryExprContext context)
+        {
+            var expression = context.expression();
+            var op = context.op;
+
+            if (expression == null || op == null) return null;
+
+            var visitedExpr = Visit(expression);
+            return new UnaryOperatorNode(visitedExpr, op.Text);
+        }
+
+        public override ASTNode VisitIfExpression([NotNull] ZParser.IfExpressionContext context)
+        {
+            var cond = context.expression(0);
+            var then = context.expression(1);
+            var _else = context.expression(2);
+
+            if (cond == null || then == null || _else == null) return null;
+
+            var visitedCond = Visit(cond) as ExprAST;
+            var visitedThen = Visit(then) as ExprAST;
+            var visitedElse = Visit(_else) as ExprAST;
+
+            return new IfExpressionNode(visitedCond, visitedThen, visitedElse);
+        }
+
+        public override ASTNode VisitLetExpression([NotNull] ZParser.LetExpressionContext context)
+        {
+            var assignments = context.letList()?._list;
+            var expr = context.expression();
+
+            if (assignments == null || expr == null) return null;
+
+            var visitedList = assignments.Select(Visit);
+            var visitedAssign = visitedList.Where(x => x is AssignmentNode).Cast<AssignmentNode>().ToList();
+            var visitedDecl = visitedList.Except(visitedAssign).ToList();
+            var visitedExpr = Visit(expr) as ExprAST;
+
+            return new LetExpressionNode(visitedAssign, visitedDecl, visitedExpr);
+        }
+
+        public override ASTNode VisitAssignment([NotNull] ZParser.AssignmentContext context)
+        {
+            var identifier = context.identifier()?.LOWERCASE_ID();
+            var expr = context.expression();
+
+            if (identifier == null || expr == null) return null;
+
+            var visitedExpr = Visit(expr);
+
+            return new AssignmentNode(identifier.GetText(), visitedExpr);
+        }
+
+        public override ASTNode VisitFunctionCallExpr([NotNull] ZParser.FunctionCallExprContext context)
+        {
+            var expr = context.expression();
+            var callParams = context.functionCall()?.usageParameterList()?._list;
+
+            if (expr == null) return null;
+
+            var visitedExpr = Visit(expr) as ExprAST;
+            var visitedList = callParams?.Select(Visit).Cast<ExprAST>().ToList() ?? new List<ExprAST>();
+
+            return new FunctionCallNode(visitedExpr, visitedList);
+        }
     }
 }
