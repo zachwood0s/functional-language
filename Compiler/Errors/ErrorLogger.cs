@@ -20,40 +20,58 @@ namespace Compiler.Errors
             public static Color Message = Color.White;
         }
 
+        public static Dictionary<MessageType, (Color color, char underline)> MessageColors = new Dictionary<MessageType, (Color, char)>()
+        {
+            [MessageType.Error] = (Colors.Error, '^'),
+            [MessageType.Warning] = (Colors.Warning, '^'),
+            [MessageType.MoreInfo] = (Colors.Accent, '_')
+        };
+
         public static void PrintCompilerMessage(CompilerMessage message)
         {
-            switch (message.Type)
+            _PrintMainMessage(message);
+            if(message.SubMessages?.Count > 0)
             {
-                case CompilerMessage.MessageType.Error:
-                    _PrintErrorMessage(message);
-                    break;
-                case CompilerMessage.MessageType.Warning:
-                    _PrintWarningMessage(message);
-                    break;
-                default:
-                    _PrintMessage(message);
-                    break;
+                _PrintSubMessage(message.SubMessages.First(), true);
+                foreach(var sub in message.SubMessages.Skip(1))
+                {
+                    _PrintSubMessage(sub);
+                }
             }
         }
 
-        private static void _PrintErrorMessage(CompilerMessage message)
+        private static void _PrintMainMessage(CompilerMessage message)
         {
-            Console.WriteLineFormatted("error{0}", Colors.Message, Colors.Error, $": {message.Message}");
+            var messageSettings = MessageColors[message.Type];
+            var messageName = message.Type.ToString().ToLower();
+
+            Console.WriteLineFormatted(messageName + "{0}", Colors.Message, messageSettings.color, $": {message.Message}");
             var line = message.SourcePosition.Line.ToString();
             var indentAmount = Math.Max(line.Length, MIN_INDENT);
             var stringIndent = new string(' ', indentAmount);
 
             Console.WriteLineFormatted(stringIndent+"--> {0}", Colors.Message, Colors.Accent, message.SourcePosition.ToStringExtended());
+        }
 
+        private static void _PrintSubMessage(SubMessage message, bool isFirst = false)
+        {
+            var messageSettings = MessageColors[message.Type];
+            var line = message.SourcePosition.Line.ToString();
+            var indentAmount = Math.Max(line.Length, MIN_INDENT);
+            var stringIndent = new string(' ', indentAmount);
 
-            Console.WriteLine($"{stringIndent} |", Colors.Accent);
+            var firstLine = isFirst
+                ? $"{stringIndent} |"
+                : $"{stringIndent.RemoveLast(2)}...";
+
+            Console.WriteLine(firstLine, Colors.Accent);
             Console.Write($"{message.SourcePosition.Line}{stringIndent.RemoveLast()}|", Colors.Accent);
-            Console.WriteLine($"{message.SourceText}", Colors.Error);
+            Console.WriteLine($"{message.SourceText}", messageSettings.color);
             Console.Write($"{stringIndent} |", Colors.Accent);
 
             var start = new string(' ', message.SourcePosition.Column);
-            var highlight = new string('^', message.SourcePosition.ErrorLength);
-            Console.WriteLine($"{start}{highlight} {message.SubMessage}", Colors.Error);
+            var highlight = new string(messageSettings.underline, message.SourcePosition.ErrorLength);
+            Console.WriteLine($"{start}{highlight} {message.Message}", messageSettings.color);
         }
 
         private static void _PrintWarningMessage(CompilerMessage message)
@@ -67,21 +85,31 @@ namespace Compiler.Errors
         }
 
         public static string ToStringExtended(this SourcePosition pos) => $"{pos.FileName}:{pos.Line}:{pos.Column}";
-        public static string RemoveLast(this string str) => str.Remove(str.Length - 1);
+        public static string RemoveLast(this string str) => str.RemoveLast(1);
+        public static string RemoveLast(this string str, int amount) => str.Remove(str.Length - amount);
+    }
+
+    public enum MessageType
+    {
+        Error,
+        Warning,
+        MoreInfo
     }
 
     public class CompilerMessage
     {
-        public enum MessageType
-        {
-            Error,
-            Warning
-        }
 
         public SourcePosition SourcePosition { get; set; }
         public string Message { get; set; }
-        public string SubMessage { get; set; }
-        public string SourceText { get; set; }
+        public List<SubMessage> SubMessages { get; set; }
         public MessageType Type { get; set; }
+    }
+
+    public class SubMessage
+    {
+        public SourcePosition SourcePosition { get; set; }
+        public MessageType Type { get; set; }
+        public string Message { get; set; }
+        public string SourceText { get; set; }
     }
 }

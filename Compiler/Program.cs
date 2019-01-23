@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using ZAntlr;
 
 namespace Compiler
 {
@@ -39,9 +39,22 @@ namespace Compiler
                 .WithParsed(_RunOptions);
             Logger.PrintCompilerMessage(new CompilerMessage() {
                 Message = "method 'foo' has '&self' declaration in the trait, but not in the impl",
-                SourcePosition = new ZAntlr.SourcePosition { Line = 18, Column = 5, FileName = "src/test/compile-fail.rs", ErrorLength = 14},
-                SourceText = "     fn foo(&self);",
-                SubMessage = "'&self' used in trait"
+                SourcePosition = new SourcePosition { Line = 18, Column = 5, FileName = "src/test/compile-fail.rs" },
+                SubMessages = new List<SubMessage>()
+                {
+                    new SubMessage(){
+                        SourceText = "     fn foo(&self);",
+                        Type = MessageType.MoreInfo,
+                        Message = "'&self' used in trait",
+                        SourcePosition = new SourcePosition() { Line = 12, Column = 5, ErrorLength = 14 },
+                    },
+                    new SubMessage(){
+                        SourceText = "     fn foo() {}",
+                        Type = MessageType.Error,
+                        Message = "expected '&self' in impl",
+                        SourcePosition = new SourcePosition() { Line = 18, Column = 5, ErrorLength = 11 },
+                    }
+                }
             });
             Console.ReadKey();
         }
