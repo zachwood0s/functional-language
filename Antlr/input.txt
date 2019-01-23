@@ -1,4 +1,4 @@
 
-fakeFunc() = doFunc(a, b) + do()(if a > 10 then 0 else 1)
+fakeFunc() = doFunc(a, b) + do()(if a > 10 then 0 else 1
 
 
