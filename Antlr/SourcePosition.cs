@@ -12,5 +12,6 @@ namespace ZAntlr
         public int Line { get; set; }
         public int Column { get; set; }
         public int ErrorLength { get; set; } = 1;
+        public string SourceText { get; set; }
     }
 }

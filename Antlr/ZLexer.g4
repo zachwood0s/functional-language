@@ -12,11 +12,27 @@ UPPERCASE_ID : UPPER_CHAR ID_CHAR*;
 
 fragment UPPER_CHAR   : [A-Z];
 fragment LOWER_CHAR   : [a-z];
-fragment ID_CHAR      : UPPER_CHAR | LOWER_CHAR | [_];
+fragment ID_CHAR      : UPPER_CHAR | LOWER_CHAR | INT | [_];
 
 INT : DIGIT+;
-
 fragment DIGIT : [0-9];
+
+CHARACTER_CONSTANT
+  : '\'' CHAR '\''
+  ;
+
+fragment CHAR
+  : ~['\\\r\n]
+  | ESCAPE_SEQUENCE
+  ;
+
+fragment ESCAPE_SEQUENCE
+  : SIMPLE_ESCAPE
+  ;
+
+fragment SIMPLE_ESCAPE
+  : '\\' ['"?abfnrtv\\]
+  ;
 
 PLUS: '+';
 MINUS: '-';
@@ -44,3 +60,11 @@ LPAREN: '(';
 RPAREN: ')';
 DOT: '.';
 SEMI_COLON: ';';
+
+BLOCK_COMMENT
+  :   '/*' .*? '*/' -> skip
+  ;
+
+LINE_COMMENT
+  :   '//' ~[\r\n]* -> skip
+  ;

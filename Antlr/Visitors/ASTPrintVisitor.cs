@@ -101,8 +101,7 @@ namespace ZAntlr.Visitors
         {
             _DoPrint(() =>
             {
-                Console.WriteLine("+Prototype: ");
-
+                Console.WriteLine("Function: ");
                 _WriteIndent($"+Params: {string.Join(",", node.Args)}");
                 _WriteIndent("+Body:");
                 _isLast = true;
@@ -166,6 +165,7 @@ namespace ZAntlr.Visitors
             _DoPrint(() =>
             {
                 Console.WriteLine($"Cast to: {node.ToType}");
+                _isLast = true;
                 node.Expression.Accept(this);
             });
         }

@@ -45,6 +45,7 @@ expression
   | expression op = LOGICAL_OR expression               #opExpr
   | ifExpression                                        #ifExpr
   | letExpression                                       #letExpr
+  | literalChar                                         #literalCharExpr
   | literalInt                                          #literalIntExpr
   | literalFloat                                        #literalFloatExpr
   | identifier                                          #identExpr
@@ -94,6 +95,10 @@ literalInt
 
 literalFloat 
   : INT DOT INT
+  ;
+
+literalChar
+  : CHARACTER_CONSTANT
   ;
 
 identifier

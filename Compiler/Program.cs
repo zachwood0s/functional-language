@@ -1,4 +1,5 @@
-﻿using CommandLine;
+﻿using Antlr4.Runtime;
+using CommandLine;
 using Compiler.AST;
 using Compiler.AST.CodeGenVisitor;
 using Compiler.AST.TypeCheckVisitor;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ZAntlr;
+using ZAntlr.Visitors;
 
 namespace Compiler
 {
@@ -37,7 +39,8 @@ namespace Compiler
         {
             CommandLine.Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(_RunOptions);
-            Logger.PrintCompilerMessage(new CompilerMessage() {
+/*
+            ErrorLogger.PrintCompilerMessage(new CompilerMessage() {
                 Message = "method 'foo' has '&self' declaration in the trait, but not in the impl",
                 SourcePosition = new SourcePosition { Line = 18, Column = 5, FileName = "src/test/compile-fail.rs" },
                 SubMessages = new List<SubMessage>()
@@ -56,12 +59,42 @@ namespace Compiler
                     }
                 }
             });
+            */
             Console.ReadKey();
         }
 
         private static void _RunOptions(Options opts)
         {
-             
+            var file = opts.InputFiles.First();
+
+            var fileStream = new AntlrFileStream(file);
+            var lexer = new ZLexer(fileStream);
+            lexer.RemoveErrorListeners();
+            lexer.AddErrorListener(ErrorListener.INSTANCE);
+
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+            var parser = new ZParser(tokens);
+            parser.RemoveErrorListeners();
+            parser.AddErrorListener(ErrorListener.INSTANCE);
+
+            var tree = parser.program();
+            var visitor = new ASTGeneratorVisitor(tokens);
+            var ast = visitor.Visit(tree);
+
+            //tokens.Get(136).Line;
+
+            if (ErrorListener.INSTANCE.FoundErrors)
+            {
+                ErrorLogger.PrintCompilerMessage(ErrorIndex.AbortError);
+                return;
+            }
+
+            if (opts.PrintAST)
+            {
+                var printer = new ASTPrintVisitor();
+                ast.Accept(printer);
+            }
         }
     }
 }

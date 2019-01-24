@@ -37,6 +37,7 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Antlr4.Runtime, Version=4.6.0.0, Culture=neutral, PublicKeyToken=09abb75b9ed49849" />
     <Reference Include="Colorful.Console, Version=1.2.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Colorful.Console.1.2.9\lib\net461\Colorful.Console.dll</HintPath>
     </Reference>
@@ -228,8 +229,9 @@
     <Compile Include="AST\Types\INodeType.cs" />
     <Compile Include="AST\Types\NoneType.cs" />
     <Compile Include="AST\Types\VariableType.cs" />
+    <Compile Include="Errors\ErrorIndex.cs" />
+    <Compile Include="Errors\ErrorListener.cs" />
     <Compile Include="Errors\ErrorLogger.cs" />
-    <Compile Include="Errors\ParserErrorListener.cs" />
     <Compile Include="Parser\Basics\Constants.cs" />
     <Compile Include="Parser\Basics\Identifiers.cs" />
     <Compile Include="Parser\Basics\Operators.cs" />
@@ -259,7 +261,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="testSource2.z">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

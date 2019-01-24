@@ -1,4 +1,21 @@
 
-fakeFunc() = doFunc(a, b) + do()(if a > 10 then 0 else 1
-
-
+printFloat: Float -> Int
+printFloat(n) =
+	let 
+		front : Int;
+		front = n :: Int;
+		p1 : Int;
+		p1 = printInt(front);
+		n1 : Float;
+		n1 = (n - (front :: Float)) * 10000.0;
+		front1 : Int;
+		front1 = abs(n1 :: Int);
+		front2 : Int;
+		front2 = if fabs(n1) - (front1 :: Float) >= 0.5 then front1 + 1
+						 else front1;
+		p2 : Int;
+		p2 = printChar('.');
+		p3 : Int;
+		p3 = printInt(front2)
+	in
+		printChar('\n')

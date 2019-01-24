@@ -10,6 +10,7 @@ namespace ZAntlr.AST
     public abstract class ASTNode
     {
         public abstract void Accept(IASTVisitor visitor);
+        public SourcePosition SourcePosition { get; set; }
     }
 
     public abstract class ExprAST: ASTNode

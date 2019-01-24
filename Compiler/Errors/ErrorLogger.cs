@@ -9,9 +9,9 @@ using Console = Colorful.Console;
 
 namespace Compiler.Errors
 {
-    public static class Logger
+    public static class ErrorLogger
     {
-        private const int MIN_INDENT = 2;
+        public const int MIN_INDENT = 2;
 
         public static class Colors {
             public static Color Error = Color.Red;
@@ -29,8 +29,9 @@ namespace Compiler.Errors
 
         public static void PrintCompilerMessage(CompilerMessage message)
         {
+            Console.WriteLine();
             _PrintMainMessage(message);
-            if(message.SubMessages?.Count > 0)
+            if(message.SubMessages.Count > 0)
             {
                 _PrintSubMessage(message.SubMessages.First(), true);
                 foreach(var sub in message.SubMessages.Skip(1))
@@ -46,11 +47,15 @@ namespace Compiler.Errors
             var messageName = message.Type.ToString().ToLower();
 
             Console.WriteLineFormatted(messageName + "{0}", Colors.Message, messageSettings.color, $": {message.Message}");
-            var line = message.SourcePosition.Line.ToString();
-            var indentAmount = Math.Max(line.Length, MIN_INDENT);
-            var stringIndent = new string(' ', indentAmount);
 
-            Console.WriteLineFormatted(stringIndent+"--> {0}", Colors.Message, Colors.Accent, message.SourcePosition.ToStringExtended());
+            if (message.SourcePosition != null)
+            {
+                var line = message.SourcePosition.Line.ToString();
+                var indentAmount = Math.Max(line.Length, MIN_INDENT);
+                var stringIndent = new string(' ', indentAmount);
+
+                Console.WriteLineFormatted(stringIndent + "--> {0}", Colors.Message, Colors.Accent, message.SourcePosition.ToStringExtended());
+            }
         }
 
         private static void _PrintSubMessage(SubMessage message, bool isFirst = false)
@@ -74,16 +79,6 @@ namespace Compiler.Errors
             Console.WriteLine($"{start}{highlight} {message.Message}", messageSettings.color);
         }
 
-        private static void _PrintWarningMessage(CompilerMessage message)
-        {
-
-        }
-
-        private static void _PrintMessage(CompilerMessage message)
-        {
-
-        }
-
         public static string ToStringExtended(this SourcePosition pos) => $"{pos.FileName}:{pos.Line}:{pos.Column}";
         public static string RemoveLast(this string str) => str.RemoveLast(1);
         public static string RemoveLast(this string str, int amount) => str.Remove(str.Length - amount);
@@ -103,6 +98,27 @@ namespace Compiler.Errors
         public string Message { get; set; }
         public List<SubMessage> SubMessages { get; set; }
         public MessageType Type { get; set; }
+
+        public CompilerMessage()
+        {
+            SubMessages = new List<SubMessage>();
+        }
+
+        public CompilerMessage(string message, MessageType type): this()
+        {
+            Message = message;
+            Type = type;
+        }
+
+        public CompilerMessage(string message, MessageType type, SourcePosition position) :this(message, type)
+        {
+            SourcePosition = position;
+        }
+
+        public CompilerMessage(string message, MessageType type, SourcePosition position, List<SubMessage> subs) :this(message, type, position)
+        {
+            SubMessages = subs;
+        }
     }
 
     public class SubMessage
@@ -111,5 +127,17 @@ namespace Compiler.Errors
         public MessageType Type { get; set; }
         public string Message { get; set; }
         public string SourceText { get; set; }
+
+        public SubMessage()
+        {
+        }
+
+        public SubMessage(string message, string sourceText, MessageType type, SourcePosition position)
+        {
+            SourcePosition = position;
+            Type = type;
+            Message = message;
+            SourceText = sourceText;
+        }
     }
 }
