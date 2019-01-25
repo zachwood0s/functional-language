@@ -5,11 +5,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Compiler.AST.Nodes;
-using Compiler.AST.Types;
-using Compiler.Parser;
 using LLVMSharp;
-using static Compiler.PidginParser.OperatorParser;
+using ZAntlr.AST;
+using ZAntlr.AST.Nodes;
+using ZAntlr.AST.Types;
 
 namespace Compiler.AST.CodeGenVisitor
 {
@@ -142,7 +141,7 @@ namespace Compiler.AST.CodeGenVisitor
             }
             else
             {
-                throw new CodeGenException($"Unknown variable name '{node.Name}'", node.Span);
+                throw new CodeGenException($"Unknown variable name '{node.Name}'", new Pidgin.SourcePos());
             }
         }
 
@@ -191,6 +190,7 @@ namespace Compiler.AST.CodeGenVisitor
 
             foreach(var assignment in node.Assignments)
             {
+                /*
                 assignment.Expression.Accept(this);
                 var calculated = _valueStack.Pop();
                 var llvmType = _GetLLVMType(assignment.Type, new Pidgin.SourcePos());
@@ -199,6 +199,7 @@ namespace Compiler.AST.CodeGenVisitor
                 _namedValues.TryGetValue(assignment.Identifier, out var oldValue);
                 oldBindings.Add(oldValue);
                 _namedValues.Add(assignment.Identifier, value);
+                */
             }
 
             node.InExpression.Accept(this);
@@ -223,5 +224,9 @@ namespace Compiler.AST.CodeGenVisitor
             return LLVM.BuildAlloca(tempB, type, varName);
         }
 
+        public void Visit(ProgramNode node)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

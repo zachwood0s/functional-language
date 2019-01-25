@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ZAntlr.AST.Nodes
 {
-    public class PrototypeNode : ASTNode
+    public class PrototypeNode : ASTNode, ITypeDeclarationNode<FunctionType>
     {
         private string _name;
         private FunctionType _type;
@@ -15,7 +15,7 @@ namespace ZAntlr.AST.Nodes
         public string Name => _name;
         public FunctionType Type => _type;
 
-        public PrototypeNode(string name, FunctionType type)
+        public PrototypeNode(string name, FunctionType type) 
         {
             _name = name;
             _type = type;

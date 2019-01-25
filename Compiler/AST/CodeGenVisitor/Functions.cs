@@ -1,11 +1,11 @@
-﻿using Compiler.AST.Nodes;
-using Compiler.AST.Types;
-using LLVMSharp;
+﻿using LLVMSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZAntlr.AST.Nodes;
+using ZAntlr.AST.Types;
 
 namespace Compiler.AST.CodeGenVisitor
 {
@@ -39,7 +39,7 @@ namespace Compiler.AST.CodeGenVisitor
         public void Visit(FunctionNode node)
         {
             _namedValues.Clear();
-            node.Prototype.Accept(this);
+            //node.Prototype.Accept(this);
             var function = _valueStack.Pop();
 
             var entry = LLVM.AppendBasicBlock(function, "entry");
@@ -47,8 +47,9 @@ namespace Compiler.AST.CodeGenVisitor
 
             for(int i = 0; i<node.Args.Count; i++)
             {
+                /*
                 var argName = node.Args[i];
-                var type = node.Prototype.Type.ParameterTypes[i];
+                //var type = node.Prototype.Type.ParameterTypes[i];
 
                 var param = LLVM.GetParam(function, (uint)i);
                 LLVM.SetValueName(param, argName);
@@ -57,6 +58,7 @@ namespace Compiler.AST.CodeGenVisitor
                 LLVM.BuildStore(_builder, param, alloca);
 
                 _namedValues[argName] = alloca;
+                */
             }
 
             try

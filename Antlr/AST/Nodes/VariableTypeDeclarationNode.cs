@@ -7,7 +7,7 @@ using ZAntlr.AST.Types;
 
 namespace ZAntlr.AST.Nodes
 {
-    public class VariableTypeDeclarationNode : ASTNode
+    public class VariableTypeDeclarationNode : ASTNode, ITypeDeclarationNode<VariableType>
     {
         private VariableType _type;
         private string _name;
@@ -15,7 +15,7 @@ namespace ZAntlr.AST.Nodes
         public string Name => _name;
         public VariableType Type => _type;
 
-        public VariableTypeDeclarationNode(string name, VariableType type)
+        public VariableTypeDeclarationNode(string name, VariableType type) 
         {
             _name = name;
             _type = type;

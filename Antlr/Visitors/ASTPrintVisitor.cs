@@ -143,6 +143,12 @@ namespace ZAntlr.Visitors
             _DoPrint(() =>
             {
                 Console.WriteLine("Let");
+                _WriteIndent("+Declarations");
+                foreach(var declaration in node.Declarations)
+                {
+                    _WriteIndent($"++ {declaration.Name}: {declaration.Type}");
+                }
+
                 _WriteIndent("+Assignments:");
                 foreach(var assignment in node.Assignments)
                 {

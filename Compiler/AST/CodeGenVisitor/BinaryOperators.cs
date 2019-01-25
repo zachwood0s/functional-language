@@ -1,12 +1,11 @@
-﻿using Compiler.AST.Nodes;
-using Compiler.AST.Types;
-using LLVMSharp;
+﻿using LLVMSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Compiler.PidginParser.OperatorParser;
+using ZAntlr.AST.Nodes;
+using ZAntlr.AST.Types;
 
 namespace Compiler.AST.CodeGenVisitor
 {

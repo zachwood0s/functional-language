@@ -11,7 +11,7 @@ namespace Compiler.Errors
 {
     public static class ErrorLogger
     {
-        public const int MIN_INDENT = 2;
+        public const int MIN_INDENT = 1;
 
         public static class Colors {
             public static Color Error = Color.Red;
@@ -29,6 +29,7 @@ namespace Compiler.Errors
 
         public static void PrintCompilerMessage(CompilerMessage message)
         {
+            _TransformTabs(message);
             Console.WriteLine();
             _PrintMainMessage(message);
             if(message.SubMessages.Count > 0)
@@ -38,6 +39,16 @@ namespace Compiler.Errors
                 {
                     _PrintSubMessage(sub);
                 }
+            }
+        }
+
+        private static void _TransformTabs(CompilerMessage message)
+        {
+            message.Message = message.Message.TabsToSpaces(); 
+            foreach(var sub in message.SubMessages)
+            {
+                sub.Message = sub.Message.TabsToSpaces();
+                sub.SourceText = sub.SourceText.TabsToSpaces();
             }
         }
 
@@ -70,7 +81,7 @@ namespace Compiler.Errors
                 : $"{stringIndent.RemoveLast(2)}...";
 
             Console.WriteLine(firstLine, Colors.Accent);
-            Console.Write($"{message.SourcePosition.Line}{stringIndent.RemoveLast()}|", Colors.Accent);
+            Console.Write($"{message.SourcePosition.Line}{stringIndent.RemoveLast(line.Length)} |", Colors.Accent);
             Console.WriteLine($"{message.SourceText}", messageSettings.color);
             Console.Write($"{stringIndent} |", Colors.Accent);
 
@@ -82,6 +93,7 @@ namespace Compiler.Errors
         public static string ToStringExtended(this SourcePosition pos) => $"{pos.FileName}:{pos.Line}:{pos.Column}";
         public static string RemoveLast(this string str) => str.RemoveLast(1);
         public static string RemoveLast(this string str, int amount) => str.Remove(str.Length - amount);
+        public static string TabsToSpaces(this string str) => str.Replace('\t', ' ');
     }
 
     public enum MessageType

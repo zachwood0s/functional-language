@@ -219,8 +219,13 @@ namespace ZAntlr.Visitors
                 return null;
 
             var visitedList = assignments.Select(Visit);
-            var visitedAssign = visitedList.Where(x => x is AssignmentNode).Cast<AssignmentNode>().ToList();
-            var visitedDecl = visitedList.Except(visitedAssign).ToList();
+            var visitedAssign = new List<AssignmentNode>();
+            var visitedDecl = new List<ITypeDeclarationNode<INodeType>>();
+            foreach(var val in visitedList)
+            {
+                if (val is AssignmentNode a) visitedAssign.Add(a);
+                else if (val is ITypeDeclarationNode<INodeType> t) visitedDecl.Add(t);
+            }
             var visitedExpr = Visit(expr) as ExprAST;
 
             SourcePosition source = _GetSourcePosition(context);
@@ -261,7 +266,7 @@ namespace ZAntlr.Visitors
             var start = context.Start;
             var stop = context.Stop;
             var line = start.Line;
-            string sourceText = _GetLineForTokens(start, stop);
+            string sourceText = Utils.GetLineTextForTokens(start, stop, _stream);
             var source = new SourcePosition()
             {
                 Line = line,
@@ -271,28 +276,6 @@ namespace ZAntlr.Visitors
                 SourceText = sourceText
             };
             return source;
-        }
-
-        private string _GetLineForTokens(IToken start, IToken stop)
-        {
-            var startIndex = start.StartIndex;
-            var stopIndex = stop.StopIndex;
-            var endIndex = _FindEndOfLine(stop.TokenIndex);
-            var sourceText = start.InputStream.GetText(new Interval(startIndex - start.Column, endIndex));
-            return sourceText;
-        }
-
-        private int _FindEndOfLine(int startIndex)
-        {
-            int line = _stream.Get(startIndex).Line;
-            int endIndex = startIndex+1;
-
-            while(_stream.Get(endIndex).Line == line)
-            {
-                endIndex++;
-            }
-
-            return _stream.Get(endIndex - 1).StopIndex;
         }
     }
 }

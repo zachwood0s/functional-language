@@ -10,14 +10,14 @@ namespace ZAntlr.AST.Nodes
     public class LetExpressionNode : ExprAST
     {
         private List<AssignmentNode> _assignments;
-        private List<ASTNode> _declarations;
+        private List<ITypeDeclarationNode<INodeType>> _declarations;
         private ExprAST _inExpression;
 
         public IReadOnlyList<AssignmentNode> Assignments => _assignments;
-        public IReadOnlyList<ASTNode> Declarations => _declarations;
+        public IReadOnlyList<ITypeDeclarationNode<INodeType>> Declarations => _declarations;
         public ExprAST InExpression => _inExpression;
 
-        public LetExpressionNode(List<AssignmentNode> assignments, List<ASTNode> declarations, ExprAST expression)
+        public LetExpressionNode(List<AssignmentNode> assignments, List<ITypeDeclarationNode<INodeType>> declarations, ExprAST expression)
         {
             _assignments = assignments;
             _declarations = declarations;

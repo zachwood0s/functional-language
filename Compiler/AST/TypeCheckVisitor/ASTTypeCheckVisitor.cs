@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Compiler.AST.Nodes;
-using Compiler.AST.Types;
-using static Compiler.PidginParser.OperatorParser;
+using ZAntlr.AST;
+using ZAntlr.AST.Nodes;
+using ZAntlr.AST.Types;
 
 namespace Compiler.AST.TypeCheckVisitor
 {
@@ -174,15 +174,17 @@ namespace Compiler.AST.TypeCheckVisitor
 
         public void Visit(FunctionNode node)
         {
-            node.Prototype.Accept(this);
-            var functionType = _typeStack.Pop();
-
-            if(functionType is FunctionType f)
+            if(!_types.TryGetValue(node.Name, out var nodeType))
             {
-                var args = node.Prototype.Type.ParameterTypes.Zip(node.Args, (type, name) => (type, name));
+                //Error 
+                return; 
+            }
+            if(nodeType is FunctionType f)
+            {
+                var args = f.ParameterTypes.Zip(node.Args, (type, name) => (type, name));
                 foreach(var (type, name) in args)
                 {
-                    _types.Add(name, type);   
+                    _types.Add(name, type);
                 }
                 _expectedTypes.Push(f.ReturnType);
                 node.Body.Accept(this);
@@ -194,7 +196,7 @@ namespace Compiler.AST.TypeCheckVisitor
             }
             else
             {
-                throw new TypeCheckException("Prototype does not describe a function");
+                //Error
             }
         }
 
@@ -247,15 +249,27 @@ namespace Compiler.AST.TypeCheckVisitor
 
         public void Visit(LetExpressionNode node)
         {
+            foreach(var decl in node.Declarations)
+            {
+                if (_types.ContainsKey(decl.Name))
+                {
+                    //Error
+                    return;
+                }
+            }
             foreach(var assignment in node.Assignments)
             {
-                _types.Add(assignment.Identifier, assignment.Type);
-                _expectedTypes.Push(assignment.Type);
+                var type = _types[assignment.Identifier];
+                _expectedTypes.Push(type);
                 assignment.Expression.Accept(this);
-                _expectedTypes.Pop();
                 var exprType = _typeStack.Pop();
+                _expectedTypes.Pop();
 
-                if (!assignment.Type.IsMatch(exprType)) throw new TypeCheckException($"Assignment type of {assignment.Identifier} does not match type definition. Expected {assignment.Type}, got {exprType}");
+                if (!type.IsMatch(exprType))
+                {
+                    //Error
+                    throw new TypeCheckException($"Assignment type of {assignment.Identifier} does not match type definition. Expected {type}, got {exprType}");
+                }
             }
             node.InExpression.Accept(this);
             var bodyType = _typeStack.Pop();
@@ -282,6 +296,18 @@ namespace Compiler.AST.TypeCheckVisitor
                 node.FromType = exprType;
             }
             else throw new TypeCheckException($"Cannot implicitly convert {exprType} to {node.ToType}");
+        }
+
+        public void Visit(ProgramNode node)
+        {
+            foreach(var child in node.Declarations)
+            {
+                child.Accept(this);
+            }
+            foreach (var child in node.Definitions)
+            {
+                child.Accept(this);
+            }
         }
     }
 }

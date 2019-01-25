@@ -66,17 +66,18 @@ namespace Compiler
         private static void _RunOptions(Options opts)
         {
             var file = opts.InputFiles.First();
-
             var fileStream = new AntlrFileStream(file);
             var lexer = new ZLexer(fileStream);
-            lexer.RemoveErrorListeners();
-            lexer.AddErrorListener(ErrorListener.INSTANCE);
 
             CommonTokenStream tokens = new CommonTokenStream(lexer);
 
+            var lexerListener = new ErrorListener(tokens);
+            lexer.RemoveErrorListeners();
+            lexer.AddErrorListener(lexerListener);
+
             var parser = new ZParser(tokens);
             parser.RemoveErrorListeners();
-            parser.AddErrorListener(ErrorListener.INSTANCE);
+            parser.AddErrorListener(lexerListener);
 
             var tree = parser.program();
             var visitor = new ASTGeneratorVisitor(tokens);
@@ -84,7 +85,7 @@ namespace Compiler
 
             //tokens.Get(136).Line;
 
-            if (ErrorListener.INSTANCE.FoundErrors)
+            if (lexerListener.FoundErrors)
             {
                 ErrorLogger.PrintCompilerMessage(ErrorIndex.AbortError);
                 return;

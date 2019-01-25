@@ -12,7 +12,13 @@ namespace ZAntlr
     public delegate void ParseErrorHandler(int line, int charPositionInLine, string msg);
     public class ErrorListener: BaseErrorListener, IAntlrErrorListener<int>
     {
-        public static readonly ErrorListener INSTANCE = new ErrorListener();
+        private ITokenStream _stream;
+
+        public ErrorListener(ITokenStream stream)
+        {
+            _stream = stream;
+        }
+
         public bool FoundErrors { get; set; }
 
         public override void SyntaxError([NotNull] IRecognizer recognizer, [Nullable] IToken offendingSymbol, 
@@ -23,6 +29,21 @@ namespace ZAntlr
             {
                 var errorLength = offendingSymbol.StopIndex+1 - offendingSymbol.StartIndex;
                 message.SourcePosition.ErrorLength = errorLength;
+                var sourceText = Utils.GetLineTextForToken(offendingSymbol, _stream);
+                var subMessage = new SubMessage()
+                {
+                    SourcePosition = new SourcePosition()
+                    {
+                        ErrorLength = errorLength,
+                        Column = charPositionInLine,
+                        Line = line
+                    },
+                    SourceText = sourceText,
+                    Message = msg,
+                    Type = MessageType.Error
+                };
+
+                message.SubMessages.Add(subMessage);
             }
             ErrorLogger.PrintCompilerMessage(message);
         }
@@ -37,7 +58,6 @@ namespace ZAntlr
         {
             FoundErrors = true;
             string sourceName = recognizer.InputStream.SourceName;
-
             var message = new CompilerMessage()
             {
                 SourcePosition = new SourcePosition() { Line = line, Column = charPositionInLine, FileName = sourceName },
@@ -46,5 +66,6 @@ namespace ZAntlr
             };
             return message;
         }
+
     }
 }
