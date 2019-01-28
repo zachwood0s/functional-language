@@ -34,6 +34,7 @@ namespace ZAntlr.Visitors
         {
             var idName = context.LOWERCASE_ID().GetText();
             SourcePosition source = _GetSourcePosition(context);
+            source.ErrorLength = idName.Length;
             return new IdentifierNode(idName){ SourcePosition = source };
         }
 
@@ -43,6 +44,7 @@ namespace ZAntlr.Visitors
             var back = context.INT(1).GetText();
             var val = double.Parse($"{front}.{back}");
             SourcePosition source = _GetSourcePosition(context);
+            source.ErrorLength = front.Length + back.Length + 1;
             return new ConstantDoubleNode(val){ SourcePosition = source };
         }
 
@@ -50,6 +52,7 @@ namespace ZAntlr.Visitors
         {
             var val = int.Parse(context.INT().GetText());
             SourcePosition source = _GetSourcePosition(context);
+            source.ErrorLength = val.ToString().Length;
             return new ConstantIntegerNode(val){ SourcePosition = source };
         }
 
@@ -76,7 +79,8 @@ namespace ZAntlr.Visitors
             var name = visitedIdent.Name;
             var visitedBody = Visit(body) as ExprAST;
 
-            SourcePosition source = _GetSourcePosition(context);
+            SourcePosition source = _GetSourcePosition(context.Start, context.Start, context.Start.Line);
+            source.ErrorLength = visitedIdent.Name.Length + parNames.Aggregate(0, (acc, str) => acc + str.Length) + 2;
             return new FunctionNode(name, parNames, visitedBody) { SourcePosition = source };
         }
 
@@ -121,6 +125,7 @@ namespace ZAntlr.Visitors
             var visitedType = Visit(type) as VariableType;
 
             SourcePosition source = _GetSourcePosition(context);
+            source.ErrorLength += visitedType.TypeName.Length;
             return new VariableTypeDeclarationNode(visitedIdent.Name, visitedType) { SourcePosition = source };
         }
 
@@ -128,6 +133,7 @@ namespace ZAntlr.Visitors
         {
             var ident = context.UPPERCASE_ID().GetText();
             SourcePosition source = _GetSourcePosition(context);
+            source.ErrorLength = ident.Length;
             return new VariableType(ident) { SourcePosition = source };
         }
 
@@ -242,7 +248,8 @@ namespace ZAntlr.Visitors
 
             var visitedExpr = Visit(expr);
 
-            SourcePosition source = _GetSourcePosition(context);
+            SourcePosition source = _GetSourcePosition(context.Start, context.Start, context.Start.Line);
+            source.ErrorLength = source.SourceText.Length - context.Start.Column;
             return new AssignmentNode(identifier.GetText(), visitedExpr) { SourcePosition = source };
         }
 
@@ -266,6 +273,11 @@ namespace ZAntlr.Visitors
             var start = context.Start;
             var stop = context.Stop;
             var line = start.Line;
+            return _GetSourcePosition(start, stop, line);
+        }
+
+        private SourcePosition _GetSourcePosition(IToken start, IToken stop, int line)
+        {
             string sourceText = Utils.GetLineTextForTokens(start, stop, _stream);
             var source = new SourcePosition()
             {

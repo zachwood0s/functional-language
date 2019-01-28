@@ -219,6 +219,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="errorTesting.z">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="testSource2.z">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

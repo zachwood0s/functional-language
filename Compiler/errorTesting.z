@@ -1,0 +1,11 @@
+
+
+test: Int -> Int
+test(a) = 
+  let b : Float
+      b = if a > 0 then 10
+          else 20
+      z : Int
+      z = 9
+  in
+    b

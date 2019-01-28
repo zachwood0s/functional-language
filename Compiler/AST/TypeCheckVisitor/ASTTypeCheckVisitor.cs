@@ -1,17 +1,20 @@
-﻿using System;
+﻿using Compiler.Errors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZAntlr;
 using ZAntlr.AST;
 using ZAntlr.AST.Nodes;
 using ZAntlr.AST.Types;
+using static Compiler.Errors.ErrorLogger;
 
 namespace Compiler.AST.TypeCheckVisitor
 {
     public class ASTTypeCheckVisitor : IASTVisitor
     {
-        private Dictionary<string, INodeType> _types;
+        private Dictionary<string, (INodeType type, SourcePosition location)> _types;
         private Stack<INodeType> _typeStack;
         private Stack<INodeType> _expectedTypes;
 
@@ -47,7 +50,7 @@ namespace Compiler.AST.TypeCheckVisitor
 
         public ASTTypeCheckVisitor()
         {
-            _types = new Dictionary<string, INodeType>();
+            _types = new Dictionary<string, (INodeType, SourcePosition)>();
             _typeStack = new Stack<INodeType>();
             _expectedTypes = new Stack<INodeType>();
             _SetupKnownCasts();
@@ -57,7 +60,7 @@ namespace Compiler.AST.TypeCheckVisitor
 
         private void _SetupBuiltInFunctions()
         {
-            _types.Add("printChar", new FunctionType(new List<INodeType>() { DefaultTypes.Char }, DefaultTypes.Int));
+            _types.Add("printChar", (new FunctionType(new List<INodeType>() { DefaultTypes.Char }, DefaultTypes.Int), null));
         }
 
         private void _SetupKnownOperators()
@@ -101,7 +104,7 @@ namespace Compiler.AST.TypeCheckVisitor
                 new AcceptableTypeCast(){From = DefaultTypes.Char, To = DefaultTypes.Int},
                 new AcceptableTypeCast(){From = DefaultTypes.Int, To = DefaultTypes.Char},
                 new AcceptableTypeCast(){From = DefaultTypes.Char, To = DefaultTypes.Float},
-                new AcceptableTypeCast(){From = DefaultTypes.Float, To = DefaultTypes.Char},
+               // new AcceptableTypeCast(){From = DefaultTypes.Float, To = DefaultTypes.Char},
             };
         }
 
@@ -119,7 +122,10 @@ namespace Compiler.AST.TypeCheckVisitor
             var rightType = _typeStack.Pop();
 
             var foundOp = _knownOperators.Find(x => x.Op == node.Operator && x.LHS.IsMatch(leftType) && x.RHS.IsMatch(rightType));
-            if (foundOp == null) throw new TypeCheckException($"No defined operator '{node.Operator}' for {leftType} and {rightType}");
+            if (foundOp == null)
+            {
+
+            }//throw new TypeCheckException($"No defined operator '{node.Operator}' for {leftType} and {rightType}");
 
             node.Type = leftType;
             node.ReturnType = foundOp.ReturnType;
@@ -153,14 +159,20 @@ namespace Compiler.AST.TypeCheckVisitor
 
             if(callType is FunctionType f)
             {
-                if (f.ParameterTypes.Count != node.Args.Count) throw new TypeCheckException($"Function call made with incorrect number of arguments. Expected {f.ParameterTypes.Count}, got {node.Args.Count}");
+                if (f.ParameterTypes.Count != node.Args.Count)
+                {
+
+                }//throw new TypeCheckException($"Function call made with incorrect number of arguments. Expected {f.ParameterTypes.Count}, got {node.Args.Count}");
 
                 foreach(var typePair in node.Args.Zip(f.ParameterTypes, (actual, expected) => (actual, expected)))
                 {
                     typePair.actual.Accept(this);
                     var argType = _typeStack.Pop();
 
-                    if (!argType.IsMatch(typePair.expected)) throw new TypeCheckException($"Incorrect argument type. Expected {typePair.expected}, got {argType}");
+                    if (!argType.IsMatch(typePair.expected))
+                    {
+
+                    }//throw new TypeCheckException($"Incorrect argument type. Expected {typePair.expected}, got {argType}");
                 }
 
                 node.Type = f.ReturnType;
@@ -168,7 +180,7 @@ namespace Compiler.AST.TypeCheckVisitor
             }
             else
             {
-                throw new TypeCheckException("Function call on non-function");
+                //throw new TypeCheckException("Function call on non-function");
             }
         }
 
@@ -179,12 +191,12 @@ namespace Compiler.AST.TypeCheckVisitor
                 //Error 
                 return; 
             }
-            if(nodeType is FunctionType f)
+            if(nodeType.type is FunctionType f)
             {
-                var args = f.ParameterTypes.Zip(node.Args, (type, name) => (type, name));
+                var args = f.ParameterTypes.TupZip(node.Args);
                 foreach(var (type, name) in args)
                 {
-                    _types.Add(name, type);
+                    _types.Add(name, (type, node.SourcePosition));
                 }
                 _expectedTypes.Push(f.ReturnType);
                 node.Body.Accept(this);
@@ -202,7 +214,7 @@ namespace Compiler.AST.TypeCheckVisitor
 
         public void Visit(PrototypeNode node)
         {
-            _types.Add(node.Name, node.Type);
+            _types.Add(node.Name, (node.Type, node.SourcePosition));
             _typeStack.Push(node.Type);
         }
 
@@ -210,20 +222,28 @@ namespace Compiler.AST.TypeCheckVisitor
         {
             if(_types.TryGetValue(node.Name, out var type))
             {
-                _typeStack.Push(type);
+                _typeStack.Push(type.type);
             }
             else
             {
-                throw new TypeCheckException($"Identifier {node.Name} does not have a specified type");
+                PrintFromErrorCode(7,
+                    new MessageConfig(node.SourcePosition,  node.Name),
+                    new MessageConfig(node.SourcePosition, None));
             }
         }
 
         public void Visit(IdentifierTypeNode node)
         {
-            if (_types.ContainsKey(node.Name)) throw new TypeCheckException($"Cannot redifine type of {node.Name}");
+            throw new NotImplementedException();
+            /*
+            if (_types.ContainsKey(node.Name))
+            {
 
-            _types.Add(node.Name, node.Type);
+            }//throw new TypeCheckException($"Cannot redifine type of {node.Name}");
+
+            _types.Add(node.Name, (node.Type, node.SourcePosition));
             _typeStack.Push(node.Type);
+            */
         }
 
         public void Visit(IfExpressionNode node)
@@ -231,16 +251,34 @@ namespace Compiler.AST.TypeCheckVisitor
             node.IfCondition.Accept(this);
             var condType = _typeStack.Pop();
 
-            if (!condType.IsMatch(DefaultTypes.Bool)) throw new TypeCheckException($"If condition must evaluate to {DefaultTypes.Bool}");
+            if (!condType.IsMatch(DefaultTypes.Bool))
+            {
+                PrintFromErrorCode(4,
+                    new MessageConfig(node.IfCondition.SourcePosition, None),
+                    new MessageConfig(node.IfCondition.SourcePosition, condType));
+                return;
+            }
 
             var expectedType = _expectedTypes.Peek();
             node.Then.Accept(this);
             var thenType = _typeStack.Pop();
-            if (!thenType.IsMatch(expectedType)) throw new TypeCheckException($"Then branch type is not expected. Expected {expectedType} got {thenType}");
+            if (!thenType.IsMatch(expectedType))
+            {
+                PrintFromErrorCode(5,
+                    new MessageConfig(node.Then.SourcePosition, expectedType, thenType),
+                    new MessageConfig(node.Then.SourcePosition, expectedType, thenType));
+                return;
+            }
 
             node.ElseExpression.Accept(this);
             var elseType = _typeStack.Pop();
-            if (!elseType.IsMatch(expectedType)) throw new TypeCheckException($"Else branch type is not expected. Expected {expectedType} got {elseType}");
+            if (!elseType.IsMatch(expectedType))
+            {
+                PrintFromErrorCode(6,
+                    new MessageConfig(node.Then.SourcePosition, expectedType, elseType),
+                    new MessageConfig(node.Then.SourcePosition, expectedType, elseType));
+                return;
+            }
 
             node.Type = thenType;
 
@@ -253,13 +291,18 @@ namespace Compiler.AST.TypeCheckVisitor
             {
                 if (_types.ContainsKey(decl.Name))
                 {
-                    //Error
+                    var (_, pos) = _types[decl.Name];
+                    PrintFromErrorCode(2,
+                        new MessageConfig(node.SourcePosition, decl.Name),
+                        new MessageConfig(decl.SourcePosition, None),
+                        new MessageConfig(pos, None));
                     return;
                 }
+                _types.Add(decl.Name, (decl.Type, decl.SourcePosition));
             }
             foreach(var assignment in node.Assignments)
             {
-                var type = _types[assignment.Identifier];
+                var (type, pos) = _types[assignment.Identifier];
                 _expectedTypes.Push(type);
                 assignment.Expression.Accept(this);
                 var exprType = _typeStack.Pop();
@@ -267,17 +310,27 @@ namespace Compiler.AST.TypeCheckVisitor
 
                 if (!type.IsMatch(exprType))
                 {
-                    //Error
-                    throw new TypeCheckException($"Assignment type of {assignment.Identifier} does not match type definition. Expected {type}, got {exprType}");
+                    PrintFromErrorCode(3,
+                        new MessageConfig(assignment.SourcePosition, type, exprType),
+                        new MessageConfig(assignment.SourcePosition, None),
+                        new MessageConfig(pos, type));
                 }
             }
             node.InExpression.Accept(this);
-            var bodyType = _typeStack.Pop();
-            var expectedType = _expectedTypes.Peek();
-            if (!bodyType.IsMatch(expectedType)) throw new TypeCheckException($"In part of let expression does not match expected type {expectedType}. In type: {bodyType}");
+            if (_typeStack.Count > 0)
+            {
+                var bodyType = _typeStack.Pop();
+                var expectedType = _expectedTypes.Peek();
+                if (!bodyType.IsMatch(expectedType))
+                {
+                    PrintFromErrorCode(8,
+                        new MessageConfig(node.InExpression.SourcePosition, expectedType, bodyType),
+                        new MessageConfig(node.InExpression.SourcePosition, None));
+                }
 
-            node.Type = bodyType;
-            _typeStack.Push(bodyType);
+                node.Type = bodyType;
+                _typeStack.Push(bodyType);
+            }
 
             foreach(var assignment in node.Assignments)
             {
@@ -295,7 +348,13 @@ namespace Compiler.AST.TypeCheckVisitor
                 _typeStack.Push(node.ToType);
                 node.FromType = exprType;
             }
-            else throw new TypeCheckException($"Cannot implicitly convert {exprType} to {node.ToType}");
+            else
+            {
+                PrintFromErrorCode(1,
+                    new MessageConfig(node.SourcePosition, exprType, node.ToType),
+                    new MessageConfig(node.Expression.SourcePosition, exprType),
+                    new MessageConfig(node.SourcePosition, exprType, node.ToType));
+            }
         }
 
         public void Visit(ProgramNode node)

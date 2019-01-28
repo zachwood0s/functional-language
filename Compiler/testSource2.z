@@ -5,10 +5,12 @@ printUInt(n) =
 	let 
 		frac : Int;
 		frac = n / 10;
+		test : Float;
+		test = 10.0;
 		res : Int;
 		res = if frac != 0 then printUInt(frac) else 0;
 	in 
-		printChar(((n % 10) + ('0' :: Int)) :: Char)
+		printChar(test :: Char)
 
 printInt: Int -> Int
 printInt(n) =

@@ -7,9 +7,10 @@ using ZAntlr.AST.Types;
 
 namespace ZAntlr.AST.Nodes
 {
-    public interface ITypeDeclarationNode<out T> where T: INodeType
+    public interface ITypeDeclarationNode<out T> where T : INodeType
     {
         string Name { get; }
         T Type { get; }
+        SourcePosition SourcePosition {get;}
     }
 }

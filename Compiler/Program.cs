@@ -96,6 +96,9 @@ namespace Compiler
                 var printer = new ASTPrintVisitor();
                 ast.Accept(printer);
             }
+
+            var typeChecker = new ASTTypeCheckVisitor();
+            ast.Accept(typeChecker);
         }
     }
 }
