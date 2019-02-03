@@ -112,6 +112,16 @@ namespace Compiler.AST.CodeGenVisitor
         {
         }
 
+        public void Visit(ModuleNode node)
+        {
+
+        }
+
+        public void Visit(ImportNode node)
+        {
+
+        }
+
         public void Visit(ConstantDoubleNode node)
         {
             _valueStack.Push(LLVM.ConstReal(_GetLLVMType(node.Type, new Pidgin.SourcePos()), node.Value));
@@ -143,6 +153,11 @@ namespace Compiler.AST.CodeGenVisitor
             {
                 throw new CodeGenException($"Unknown variable name '{node.Name}'", new Pidgin.SourcePos());
             }
+        }
+
+        public void Visit(VariableTypeDeclarationNode node)
+        {
+        
         }
 
         public void Visit(IfExpressionNode node)

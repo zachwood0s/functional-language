@@ -24,14 +24,27 @@ namespace ZAntlr
         public static int FindEndOfLine(int startIndex, ITokenStream stream)
         {
             int line = stream.Get(startIndex).Line;
-            int endIndex = startIndex+1;
+            int endIndex = startIndex + 1;
 
-            while(endIndex < stream.Size && stream.Get(endIndex).Line == line)
+            while (endIndex < stream.Size && stream.Get(endIndex).Line == line)
             {
                 endIndex++;
             }
 
             return stream.Get(endIndex - 1).StopIndex;
+        }
+    }
+
+    public static class IEnumerableExtensions
+    {
+        public static IEnumerable<(T item, int index)> Enumerate<T>(this IEnumerable<T> list)
+        {
+            int count = 0;
+            foreach(var elm in list)
+            {
+                yield return (elm, count);
+                count++;
+            }
         }
     }
 }

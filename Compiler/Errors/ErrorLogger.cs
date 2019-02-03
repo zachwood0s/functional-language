@@ -80,7 +80,8 @@ namespace Compiler.Errors
                 _PrintSubMessage(message.SubMessages.First(), true);
                 foreach(var sub in message.SubMessages.Skip(1))
                 {
-                    _PrintSubMessage(sub);
+                    var differentFile = sub.SourcePosition.FileName != message.SourcePosition.FileName;
+                    _PrintSubMessage(sub, false, differentFile);
                 }
             }
         }
@@ -121,7 +122,7 @@ namespace Compiler.Errors
             }
         }
 
-        private static void _PrintSubMessage(SubMessage message, bool isFirst = false)
+        private static void _PrintSubMessage(SubMessage message, bool isFirst = false, bool differentFile = false)
         {
             var messageSettings = MessageColors[message.Type];
             var line = message.SourcePosition.Line.ToString();
@@ -133,6 +134,11 @@ namespace Compiler.Errors
                 : $"{stringIndent.RemoveLast(2)}...";
 
             Console.WriteLine(firstLine, Colors.Accent);
+            if (differentFile)
+            {
+                Console.WriteLine($"{stringIndent} | {message.SourcePosition.ToStringExtended()}", Colors.Accent);
+                Console.WriteLine($"{stringIndent} |", Colors.Accent);
+            }
             Console.Write($"{message.SourcePosition.Line}{stringIndent.RemoveLast(line.Length)} |", Colors.Accent);
             Console.WriteLine($" {message.SourceText}", messageSettings.color);
             Console.Write($"{stringIndent} |", Colors.Accent);

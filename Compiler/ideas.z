@@ -1,0 +1,26 @@
+
+
+
+type Int
+type Float
+type Char
+
+trait Number {
+  (+) : a, a -> a
+  (-) : a, a -> a
+  (*) : a, a -> a
+}
+
+c_addI : Int, Int -> Int
+c_subI : Int, Int -> Int
+c_mulI : Int, Int -> Int
+
+impl Number for Int {
+  (+)(a, b) = c_addI(a, b)
+  (-)(a, b) = c_subI(a, b)
+  (*)(a, b) = c_mulI(a, b)
+}
+
+export {
+  Number
+} as Prelude

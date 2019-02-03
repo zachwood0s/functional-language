@@ -2,7 +2,7 @@ parser grammar ZParser;
 
 options {tokenVocab = ZLexer;}
 
-program : (typeDeclaration|definition)* EOF;
+program : importList? module? (typeDeclaration|definition)* EOF;
 
 definition 
   : functionDefinition | globalDefinition
@@ -31,6 +31,58 @@ parameterList
   : identifier(COMMA identifier)*
   ;
 
+// Modules
+
+importList
+  : list += importItem 
+    (importListSeparator? list += importItem)*
+    importListSeparator?
+  ;
+
+importListSeparator
+  : COMMA
+  ;
+
+importItem
+  : IMPORT importName (AS UPPERCASE_ID)?
+  ;
+
+importName
+  : UPPERCASE_ID (DOT UPPERCASE_ID)*;
+
+module
+  : EXPORT LBRACKET exportList RBRACKET AS UPPERCASE_ID
+  ;
+
+exportList
+  : list += exportItem 
+    (exportListSeparator? list += exportItem)*
+    exportListSeparator?
+  ;
+
+exportListSeparator
+  : COMMA
+  ;
+
+exportItem
+  : UPPERCASE_ID | LOWERCASE_ID
+  ;
+
+// Traits
+
+trait
+  : TRAIT identifierType LBRACKET traitList RBRACKET
+  ;
+
+traitList
+  : list += functionTypeDeclaration
+    (traitListSeparator? list += functionTypeDeclaration)*
+    traitListSeparator?
+  ;
+
+traitListSeparator
+  : COMMA
+  ;
 
 // Expressions
 
@@ -48,6 +100,7 @@ expression
   | literalChar                                         #literalCharExpr
   | literalInt                                          #literalIntExpr
   | literalFloat                                        #literalFloatExpr
+  | largeIdentifier                                     #largeIdentifierExpr
   | identifier                                          #identExpr
   | LPAREN expression RPAREN                            #parenExpr
   ;
@@ -62,6 +115,10 @@ functionCall
 
 usageParameterList 
   : list += expression (COMMA list += expression)*
+  ;
+
+largeIdentifier
+  : UPPERCASE_ID (DOT UPPERCASE_ID)* (DOT LOWERCASE_ID)?
   ;
 
 

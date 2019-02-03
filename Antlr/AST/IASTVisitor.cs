@@ -11,6 +11,8 @@ namespace ZAntlr.AST
     {
         void Visit(ASTNode node);
         void Visit(ProgramNode node);
+        void Visit(ImportNode node);
+        void Visit(ModuleNode node);
         void Visit(BinaryOperatorNode node);
         void Visit(ConstantDoubleNode node);
         void Visit(ConstantIntegerNode node);
@@ -21,6 +23,7 @@ namespace ZAntlr.AST
         void Visit(PrototypeNode node);
         void Visit(IdentifierNode node);
         void Visit(IdentifierTypeNode node);
+        void Visit(VariableTypeDeclarationNode node);
         void Visit(IfExpressionNode node);
         void Visit(LetExpressionNode node);
         void Visit(TypeCastNode node);

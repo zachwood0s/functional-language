@@ -23,11 +23,26 @@ namespace ZAntlr.Visitors
         {
             var defs = context.definition();
             var declarations = context.typeDeclaration();
+            var module = context.module();
+            var importList = context.importList()?._list;
 
+            var visitedList = importList?.Select(Visit).Cast<ImportNode>().ToList();
             var visitedDefs = defs?.Select(Visit).ToList();
             var visitedDecls = declarations?.Select(Visit).ToList();
+            var visitedModule = module?.Accept(this);
 
-            return new ProgramNode(visitedDefs, visitedDecls);
+            return new ProgramNode(visitedModule, visitedDefs, visitedDecls, visitedList);
+        }
+
+        public override ASTNode VisitImportItem([NotNull] ZParser.ImportItemContext context)
+        {
+            var name = context.importName()?.GetText();
+
+            if (name == null) return null;
+            var asName = context.UPPERCASE_ID()?.GetText() ?? name;
+
+            var source = _GetSourcePosition(context);
+            return new ImportNode(name, asName) { SourcePosition = source };
         }
 
         public override ASTNode VisitIdentifier([NotNull] ZParser.IdentifierContext context)
@@ -36,6 +51,14 @@ namespace ZAntlr.Visitors
             SourcePosition source = _GetSourcePosition(context);
             source.ErrorLength = idName.Length;
             return new IdentifierNode(idName){ SourcePosition = source };
+        }
+
+        public override ASTNode VisitLargeIdentifier([NotNull] ZParser.LargeIdentifierContext context)
+        {
+            var idName = context.GetText();
+            SourcePosition source = _GetSourcePosition(context);
+            source.ErrorLength = idName.Length;
+            return new IdentifierNode(idName) { SourcePosition = source };
         }
 
         public override ASTNode VisitLiteralFloat([NotNull] ZParser.LiteralFloatContext context)
@@ -107,10 +130,11 @@ namespace ZAntlr.Visitors
                 return null;
 
             var visitedTypeList = typeList.Select(x => Visit(x) as INodeType);
-            var visitedReturn = Visit(returnType) as INodeType;
+            var visitedReturn = Visit(returnType);
 
             SourcePosition source = _GetSourcePosition(context);
-            return new FunctionType(visitedTypeList.ToList(), visitedReturn) { SourcePosition = source };
+            source.ErrorLength += visitedReturn.SourcePosition.ErrorLength;
+            return new FunctionType(visitedTypeList.ToList(), visitedReturn as INodeType) { SourcePosition = source };
         }
 
         public override ASTNode VisitVariableTypeDeclaration([NotNull] ZParser.VariableTypeDeclarationContext context)
@@ -266,6 +290,19 @@ namespace ZAntlr.Visitors
 
             SourcePosition source = _GetSourcePosition(context);
             return new FunctionCallNode(visitedExpr, visitedList) { SourcePosition = source };
+        }
+
+        public override ASTNode VisitModule([NotNull] ZParser.ModuleContext context)
+        {
+            var exportList = context.exportList()?._list;
+            var ident = context.UPPERCASE_ID()?.GetText();
+
+            if (exportList == null || ident == null) return null;
+
+            var visitedList = exportList.Select(x => x.GetText()).ToList();
+
+            SourcePosition source = _GetSourcePosition(context);
+            return new ModuleNode(ident, visitedList) { SourcePosition = source };
         }
 
         private SourcePosition _GetSourcePosition(ParserRuleContext context)

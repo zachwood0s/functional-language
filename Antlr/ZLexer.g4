@@ -5,6 +5,12 @@ THEN : 'then';
 ELSE: 'else';
 LET: 'let';
 IN: 'in';
+EXPORT: 'export';
+IMPORT: 'import';
+AS: 'as';
+TRAIT: 'trait';
+WITH: 'with';
+
 
 WS : [ \t\r\n]+ -> skip;
 LOWERCASE_ID : LOWER_CHAR ID_CHAR*;
@@ -58,6 +64,8 @@ COLON: ':';
 COMMA: ',';
 LPAREN: '(';
 RPAREN: ')';
+LBRACKET: '{';
+RBRACKET: '}';
 DOT: '.';
 SEMI_COLON: ';';
 

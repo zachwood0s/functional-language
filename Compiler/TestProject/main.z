@@ -1,0 +1,5 @@
+
+import Data.List as List exposing (add)
+
+main: () -> Int
+main() = add(10, 10)

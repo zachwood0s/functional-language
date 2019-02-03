@@ -65,39 +65,18 @@ namespace Compiler
 
         private static void _RunOptions(Options opts)
         {
-            var file = opts.InputFiles.First();
-            var fileStream = new AntlrFileStream(file);
-            var lexer = new ZLexer(fileStream);
+            var handler = new ModuleHandler();
 
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            var ast = handler.LoadFile(opts.InputFiles.First());
 
-            var lexerListener = new ErrorListener(tokens);
-            lexer.RemoveErrorListeners();
-            lexer.AddErrorListener(lexerListener);
-
-            var parser = new ZParser(tokens);
-            parser.RemoveErrorListeners();
-            parser.AddErrorListener(lexerListener);
-
-            var tree = parser.program();
-            var visitor = new ASTGeneratorVisitor(tokens);
-            var ast = visitor.Visit(tree);
-
-            //tokens.Get(136).Line;
-
-            if (lexerListener.FoundErrors)
-            {
-                ErrorLogger.PrintCompilerMessage(ErrorIndex.AbortError);
-                return;
-            }
-
+            if (ast == null) return;
             if (opts.PrintAST)
             {
                 var printer = new ASTPrintVisitor();
                 ast.Accept(printer);
             }
 
-            var typeChecker = new ASTTypeCheckVisitor();
+            var typeChecker = new ASTTypeCheckVisitor(handler);
             ast.Accept(typeChecker);
         }
     }

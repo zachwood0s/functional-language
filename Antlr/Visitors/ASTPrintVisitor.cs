@@ -24,15 +24,56 @@ namespace ZAntlr.Visitors
             _DoPrint(() =>
             {
                 Console.WriteLine("Program:");
-                foreach (var def in node.Declarations)
+
+                if (node.Imports != null)
                 {
-                    def.Accept(this);
+                    _WriteIndent("+Imports:");
+                    foreach (var import in node.Imports)
+                    {
+                        import.Accept(this);
+                    }
                 }
-                for(int i = 0; i<node.Definitions.Count; i++)
+
+                node.Module?.Accept(this);
+
+                if (node.Declarations != null)
                 {
-                    if (i == node.Definitions.Count - 1)
+                    foreach (var def in node.Declarations)
+                    {
+                        def.Accept(this);
+                    }
+                }
+
+                if(node.Definitions != null)
+                {
+                    for(int i = 0; i<node.Definitions.Count; i++)
+                    {
+                        if (i == node.Definitions.Count - 1)
+                            _isLast = true;
+                        node.Definitions[i].Accept(this);
+                    }
+                }
+            });
+        }
+        
+        public void Visit(ImportNode node)
+        {
+            _DoPrint(() =>
+            {
+                Console.WriteLine($"{node.ModuleName} as {node.AsName}");
+            });
+        }
+
+        public void Visit(ModuleNode node)
+        {
+            _DoPrint(() =>
+            {
+                Console.WriteLine("Exports:");
+                foreach(var (item, index) in node.Exports.Enumerate())
+                {
+                    if (index == node.Exports.Count - 1)
                         _isLast = true;
-                    node.Definitions[i].Accept(this);
+                    _WriteIndent(item);
                 }
             });
         }
@@ -88,11 +129,11 @@ namespace ZAntlr.Visitors
             {
                 Console.WriteLine("Function call:");
                 node.Callee.Accept(this);
-                for(int i = 0; i<node.Args.Count; i++)
+                foreach(var (item, index) in node.Args.Enumerate())
                 {
-                    if (i == node.Args.Count - 1)
+                    if (index == node.Args.Count - 1)
                         _isLast = true;
-                    node.Args[i].Accept(this);
+                    item.Accept(this);
                 }
             });
         }
@@ -110,6 +151,14 @@ namespace ZAntlr.Visitors
         }
 
         public void Visit(PrototypeNode node)
+        {
+            _DoPrint(() =>
+            {
+                Console.WriteLine($"{node.Name}: {node.Type}");
+            });
+        }
+
+        public void Visit(VariableTypeDeclarationNode node)
         {
             _DoPrint(() =>
             {

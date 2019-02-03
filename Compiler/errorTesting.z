@@ -1,11 +1,25 @@
 
+import Data
+import Data.List as List
+
+export {
+    test,
+    func
+} as Testing
 
 test: Int -> Int
 test(a) = 
   let b : Float
       b = if a > 0 then 10
-          else 20
+          else 20.0
       z : Int
-      z = 9
+      z = 9 + 10
   in
     b
+
+
+func: Int -> Thisisalongtype
+func(a) = a
+
+bFunc: Float -> Int
+bFunc(a) = func(a)
